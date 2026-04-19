@@ -1,6 +1,6 @@
 {
   "name": "ganadapp",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Aplicación de gestión ganadera",
   "main": "electron/main.js",
   "author": "GanadApp",
