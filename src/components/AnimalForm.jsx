@@ -213,6 +213,11 @@ export default function AnimalForm({ onGranjaChange }) {
                 <label>Fecha de nacimiento</label>
                 <input type="date" value={form.fecha_nacimiento} onChange={e => set('fecha_nacimiento', e.target.value)} />
               </div>
+              <div className="form-group">
+                <label>Peso (kg)</label>
+                <input type="number" step="0.1" min="0" value={form.peso} onChange={e => set('peso', e.target.value)} placeholder="Ej: 450" />
+                {errors.peso && <span className="form-error">{errors.peso}</span>}
+              </div>
             </div>
           </div>
 
