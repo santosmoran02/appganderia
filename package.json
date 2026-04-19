@@ -1,0 +1,81 @@
+{
+  "name": "ganadapp",
+  "version": "1.0.0",
+  "description": "Aplicación de gestión ganadera",
+  "main": "electron/main.js",
+  "author": "GanadApp",
+  "license": "MIT",
+  "scripts": {
+    "dev": "concurrently \"vite\" \"wait-on http://localhost:5173 && electron . --no-sandbox\"",
+    "build": "vite build",
+    "electron:dev": "electron .",
+    "rebuild": "PYTHONPATH=/tmp/python_shims electron-rebuild -f -w better-sqlite3",
+    "dist": "vite build && electron-builder",
+    "dist:win": "vite build && electron-builder --win --x64",
+    "dist:win:portable": "vite build && electron-builder --win portable --x64"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.10.0",
+    "date-fns": "^3.6.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.23.1"
+  },
+  "devDependencies": {
+    "@electron/rebuild": "^3.6.0",
+    "@vitejs/plugin-react": "^4.3.1",
+    "concurrently": "^8.2.2",
+    "electron": "^31.0.0",
+    "electron-builder": "^24.13.3",
+    "vite": "^5.3.1",
+    "wait-on": "^7.2.0"
+  },
+  "build": {
+    "appId": "com.ganadapp.app",
+    "productName": "GanadApp",
+    "directories": {
+      "output": "dist-electron"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "node_modules/**/*",
+      "public/**/*",
+      "package.json"
+    ],
+    "asarUnpack": [
+      "node_modules/better-sqlite3/**/*"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        },
+        {
+          "target": "portable",
+          "arch": ["x64"]
+        }
+      ],
+      "icon": "public/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "GanadApp",
+      "installerIcon": "public/icon.ico",
+      "uninstallerIcon": "public/icon.ico"
+    },
+    "linux": {
+      "target": ["AppImage"],
+      "icon": "public/icon.png",
+      "category": "Utility"
+    },
+    "mac": {
+      "target": ["dmg"],
+      "icon": "public/icon.png"
+    }
+  }
+}
