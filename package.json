@@ -47,16 +47,11 @@
     "asarUnpack": [
       "node_modules/better-sqlite3/**/*"
     ],
+    "artifactName": "${productName}-Setup.${ext}",
     "win": {
       "target": [
         {
           "target": "nsis",
-          "arch": [
-            "x64"
-          ]
-        },
-        {
-          "target": "portable",
           "arch": [
             "x64"
           ]
