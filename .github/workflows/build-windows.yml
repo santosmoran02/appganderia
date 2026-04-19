@@ -39,6 +39,7 @@ jobs:
         with:
           files: |
             dist-electron/*.exe
+            dist-electron/*.yml
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
