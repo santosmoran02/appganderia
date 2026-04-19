@@ -168,10 +168,10 @@ export default function AnimalForm({ onGranjaChange }) {
         </div>
       )}
 
-      <form className="form-card" style={{ maxWidth: '100%', height: 'calc(100vh - 160px)', display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: '1fr auto', gap: 0, padding: 0 }} onSubmit={handleSubmit}>
+      <form className="form-card" style={{ maxWidth: '100%', display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: '1fr auto', gap: 0, padding: 0 }} onSubmit={handleSubmit}>
 
         {/* ── Columna izquierda: datos del animal ── */}
-        <div style={{ padding: 28, borderRight: '1px solid var(--gray-200)' }}>
+        <div style={{ padding: 28, borderRight: '1px solid var(--gray-200)', overflowY: 'auto' }}>
 
           <div className="form-section">
             <div className="form-section-title">Identificación</div>
