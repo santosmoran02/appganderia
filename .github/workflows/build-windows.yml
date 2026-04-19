@@ -1,9 +1,9 @@
-name: Build Windows Installer
+name: Build y Release Windows
 
 on:
   push:
-    branches: [main, master]
-  workflow_dispatch:
+    tags:
+      - 'v*.*.*'
 
 jobs:
   build:
@@ -32,13 +32,11 @@ jobs:
         run: npx electron-builder --win --x64
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          DEBUG: electron-builder
 
-      - name: Subir instalador como artefacto
-        uses: actions/upload-artifact@v4
+      - name: Crear Release y subir instalador
+        uses: softprops/action-gh-release@v2
         with:
-          name: GanadApp-Windows
-          path: |
+          files: |
             dist-electron/*.exe
-            dist-electron/*.yml
-          retention-days: 30
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
