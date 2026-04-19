@@ -1,5 +1,6 @@
-const { app, BrowserWindow, ipcMain } = require('electron')
+const { app, BrowserWindow, ipcMain, dialog } = require('electron')
 const path = require('path')
+const { autoUpdater } = require('electron-updater')
 
 const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged
 
@@ -33,6 +34,20 @@ app.whenReady().then(() => {
   createWindow()
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
+  })
+  if (!isDev) {
+    autoUpdater.checkForUpdates()
+  }
+})
+
+autoUpdater.on('update-downloaded', () => {
+  dialog.showMessageBox({
+    type: 'info',
+    title: 'Actualización disponible',
+    message: 'Hay una nueva versión de GanadApp. ¿Instalar ahora?',
+    buttons: ['Instalar y reiniciar', 'Más tarde'],
+  }).then(({ response }) => {
+    if (response === 0) autoUpdater.quitAndInstall()
   })
 })
 
