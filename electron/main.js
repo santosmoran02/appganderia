@@ -1,6 +1,6 @@
-const { app, BrowserWindow, ipcMain, dialog } = require('electron')
+const { app, BrowserWindow, ipcMain, dialog, shell } = require('electron')
 const path = require('path')
-const { autoUpdater } = require('electron-updater')
+const https = require('https')
 
 const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged
 
@@ -30,25 +30,41 @@ function createWindow() {
   win.once('ready-to-show', () => win.show())
 }
 
+function checkForUpdates() {
+  const options = {
+    hostname: 'api.github.com',
+    path: '/repos/santosmoran02/appganderia/releases/latest',
+    headers: { 'User-Agent': 'GanadApp' },
+  }
+  https.get(options, res => {
+    let data = ''
+    res.on('data', chunk => data += chunk)
+    res.on('end', () => {
+      try {
+        const release = JSON.parse(data)
+        const latest = release.tag_name?.replace(/^v/, '')
+        const current = app.getVersion()
+        if (latest && latest !== current) {
+          dialog.showMessageBox({
+            type: 'info',
+            title: 'Nueva versión disponible',
+            message: `Hay una nueva versión de GanadApp (v${latest}).\n¿Quieres ir a la página de descarga?`,
+            buttons: ['Descargar ahora', 'Más tarde'],
+          }).then(({ response }) => {
+            if (response === 0) shell.openExternal('https://santosmoran02.github.io/appganderia/')
+          })
+        }
+      } catch (_) {}
+    })
+  }).on('error', () => {})
+}
+
 app.whenReady().then(() => {
   createWindow()
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
   })
-  if (!isDev) {
-    autoUpdater.checkForUpdates()
-  }
-})
-
-autoUpdater.on('update-downloaded', () => {
-  dialog.showMessageBox({
-    type: 'info',
-    title: 'Actualización disponible',
-    message: 'Hay una nueva versión de GanadApp. ¿Instalar ahora?',
-    buttons: ['Instalar y reiniciar', 'Más tarde'],
-  }).then(({ response }) => {
-    if (response === 0) autoUpdater.quitAndInstall()
-  })
+  if (!isDev) checkForUpdates()
 })
 
 app.on('window-all-closed', () => {
