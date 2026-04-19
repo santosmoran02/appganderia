@@ -1,6 +1,6 @@
 {
   "name": "ganadapp",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Aplicación de gestión ganadera",
   "main": "electron/main.js",
   "author": "GanadApp",
@@ -34,6 +34,11 @@
   "build": {
     "appId": "com.ganadapp.app",
     "productName": "GanadApp",
+    "publish": {
+      "provider": "github",
+      "owner": "santosmoran02",
+      "repo": "appganderia"
+    },
     "directories": {
       "output": "dist-electron"
     },
