@@ -5,6 +5,9 @@ on:
     tags:
       - 'v*.*.*'
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: windows-latest
@@ -29,9 +32,7 @@ jobs:
         run: npm run build
 
       - name: Empaquetar instalador Windows
-        run: npx electron-builder --win --x64
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx electron-builder --win --x64 --publish never
 
       - name: Crear Release y subir instalador
         uses: softprops/action-gh-release@v2
