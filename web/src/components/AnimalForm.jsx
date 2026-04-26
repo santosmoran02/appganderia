@@ -164,9 +164,9 @@ export default function AnimalForm({ onGranjaChange }) {
         </div>
       )}
 
-      <form className="form-card" style={{ maxWidth: '100%', display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: '1fr auto', gap: 0, padding: 0 }} onSubmit={handleSubmit}>
+      <form className="form-card animal-form-grid" onSubmit={handleSubmit}>
 
-        <div style={{ padding: 28, borderRight: '1px solid var(--gray-200)', overflowY: 'auto' }}>
+        <div className="animal-form-col-left">
 
           <div className="form-section">
             <div className="form-section-title">Identificación</div>
@@ -246,7 +246,7 @@ export default function AnimalForm({ onGranjaChange }) {
 
         </div>
 
-        <div style={{ padding: 28, display: 'flex', flexDirection: 'column' }}>
+        <div className="animal-form-col-right">
           <div className="form-section-title" style={{ marginBottom: 16 }}>Observaciones</div>
           <textarea
             value={form.notas}
@@ -256,7 +256,7 @@ export default function AnimalForm({ onGranjaChange }) {
           />
         </div>
 
-        <div style={{ gridColumn: '1 / -1', display: 'flex', gap: 10, justifyContent: 'flex-end', padding: '16px 28px', borderTop: '1px solid var(--gray-200)' }}>
+        <div className="animal-form-footer">
           <Link to={isEdit ? `/animales/${id}` : (form.granja_id ? `/granjas/${form.granja_id}` : '/animales')} className="btn btn-secondary">Cancelar</Link>
           <button type="submit" className="btn btn-primary" disabled={saving}>
             {saving ? 'Guardando...' : isEdit ? 'Guardar cambios' : 'Crear animal'}

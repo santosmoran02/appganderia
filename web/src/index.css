@@ -1423,3 +1423,165 @@ textarea { resize: vertical; min-height: 80px; }
 /* ===== Web overrides ===== */
 body { overflow: auto; }
 .app-layout { min-height: 100vh; }
+
+/* ===== AnimalForm grid ===== */
+.animal-form-grid {
+  max-width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr auto;
+  gap: 0;
+  padding: 0;
+}
+.animal-form-col-left {
+  padding: 28px;
+  border-right: 1px solid var(--gray-200);
+  overflow-y: auto;
+}
+.animal-form-col-right {
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+}
+.animal-form-footer {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  padding: 16px 28px;
+  border-top: 1px solid var(--gray-200);
+}
+
+/* ===== Mobile header ===== */
+.mobile-header {
+  display: none;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+  /* Cabecera móvil */
+  .mobile-header {
+    display: flex;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 52px;
+    background: var(--gray-900);
+    z-index: 150;
+    align-items: center;
+    padding: 0 16px;
+    gap: 12px;
+  }
+  .mobile-logo-icon { font-size: 22px; }
+  .mobile-logo-text { font-size: 16px; font-weight: 700; color: #fff; }
+  .hamburger {
+    background: none;
+    border: none;
+    color: #fff;
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+  }
+  .hamburger svg { width: 22px; height: 22px; }
+
+  /* Sidebar como panel deslizante */
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: -240px;
+    bottom: 0;
+    width: 240px;
+    z-index: 200;
+    transition: left 0.25s ease;
+  }
+  .sidebar--open { left: 0; }
+  .sidebar .sidebar-logo { display: none; }
+
+  /* Overlay oscuro */
+  .sidebar-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 199;
+  }
+
+  /* Contenido principal */
+  .main-content {
+    padding: 16px;
+    padding-top: 68px;
+  }
+
+  /* Encabezados de página */
+  .page-header {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .page-header > div:last-child {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  /* Filtros */
+  .filters-bar {
+    flex-direction: column;
+  }
+  .search-box { min-width: unset; }
+
+  /* Tabla animales — scroll horizontal */
+  .animals-table-wrap { overflow-x: auto; }
+  .animals-table { min-width: 600px; }
+
+  /* Tabs — scroll horizontal */
+  .tabs {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    padding-bottom: 2px;
+  }
+  .tab { white-space: nowrap; }
+
+  /* Cabecera animal */
+  .animal-header { flex-wrap: wrap; }
+  .animal-header-actions { width: 100%; justify-content: flex-end; }
+
+  /* Info grid */
+  .info-grid { grid-template-columns: 1fr 1fr; }
+
+  /* Estado opciones */
+  .estado-opciones-grid { grid-template-columns: 1fr 1fr; }
+
+  /* Genealogía */
+  .genea-parent-row { grid-template-columns: 1fr; }
+  .descendencia-grid { grid-template-columns: repeat(2, 1fr); }
+
+  /* Dashboard resumen */
+  .resumen-grid { grid-template-columns: repeat(2, 1fr); }
+
+  /* Calendario */
+  .cal-page-header { flex-direction: column; gap: 12px; }
+  .cal-semanal-grid {
+    grid-template-columns: repeat(4, minmax(100px, 1fr));
+    overflow-x: auto;
+  }
+  .cal-anual-grid { grid-template-columns: repeat(2, 1fr); }
+  .cal-nav-title { min-width: unset; font-size: 14px; }
+
+  /* Formulario animal — columna única */
+  .animal-form-grid { grid-template-columns: 1fr; }
+  .animal-form-col-left {
+    border-right: none;
+    border-bottom: 1px solid var(--gray-200);
+    padding: 20px 16px;
+  }
+  .animal-form-col-right { padding: 20px 16px; }
+  .animal-form-footer { padding: 16px; }
+
+  /* Modal */
+  .modal { width: 95vw; padding: 20px; }
+
+  /* Historial */
+  .historial-header { flex-wrap: wrap; gap: 10px; }
+}
