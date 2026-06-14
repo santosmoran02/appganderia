@@ -1,5 +1,8 @@
 import { Routes, Route, NavLink, useNavigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
+import { supabase } from './supabase'
+import { api } from './api'
+import Login from './components/Login'
 import Dashboard from './components/Dashboard'
 import AnimalList from './components/AnimalList'
 import AnimalDetail from './components/AnimalDetail'
@@ -7,14 +10,14 @@ import AnimalForm from './components/AnimalForm'
 import GranjaAnimalList from './components/GranjaAnimalList'
 import Calendar from './components/Calendar'
 
-export default function App() {
+function MainApp() {
   const navigate = useNavigate()
   const [granjas, setGranjas] = useState([])
   const [showNuevaGranja, setShowNuevaGranja] = useState(false)
   const [nombreGranja, setNombreGranja] = useState('')
   const [savingGranja, setSavingGranja] = useState(false)
 
-  const cargarGranjas = () => window.api.getGranjas().then(setGranjas)
+  const cargarGranjas = () => api.getGranjas().then(setGranjas)
 
   useEffect(() => { cargarGranjas() }, [])
 
@@ -22,12 +25,16 @@ export default function App() {
     const nombre = nombreGranja.trim()
     if (!nombre) return
     setSavingGranja(true)
-    const nueva = await window.api.createGranja({ nombre })
+    const nueva = await api.createGranja({ nombre })
     setGranjas(gs => [...gs, nueva].sort((a, b) => a.nombre.localeCompare(b.nombre)))
     setNombreGranja('')
     setShowNuevaGranja(false)
     setSavingGranja(false)
     navigate(`/granjas/${nueva.id}`)
+  }
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut()
   }
 
   return (
@@ -51,7 +58,6 @@ export default function App() {
             Calendario
           </NavLink>
 
-          {/* ── Sección Granjas ── */}
           <div className="sidebar-section-header">
             <span className="sidebar-section-label">Granjas</span>
             <button className="sidebar-section-add" title="Nueva granja" onClick={() => { setNombreGranja(''); setShowNuevaGranja(true) }}>
@@ -71,6 +77,12 @@ export default function App() {
           )}
         </nav>
 
+        <div className="sidebar-footer">
+          <button className="btn-logout" onClick={handleLogout}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            Cerrar sesión
+          </button>
+        </div>
       </aside>
 
       <main className="main-content">
@@ -85,7 +97,6 @@ export default function App() {
         </Routes>
       </main>
 
-      {/* Modal nueva granja */}
       {showNuevaGranja && (
         <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setShowNuevaGranja(false)}>
           <div className="modal">
@@ -112,4 +123,18 @@ export default function App() {
       )}
     </div>
   )
+}
+
+export default function App() {
+  const [session, setSession] = useState(undefined)
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => setSession(session))
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => setSession(session))
+    return () => subscription.unsubscribe()
+  }, [])
+
+  if (session === undefined) return <div className="loading" style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Cargando...</div>
+  if (!session) return <Login />
+  return <MainApp />
 }

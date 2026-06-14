@@ -1,3 +1,4 @@
+import { api } from '../api'
 import { useEffect, useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 
@@ -32,7 +33,7 @@ export default function AnimalList() {
 
   const cargar = useCallback(() => {
     setLoading(true)
-    window.api.getAnimales({ busqueda, estado, raza }).then(data => {
+    api.getAnimales({ busqueda, estado, raza }).then(data => {
       setAnimales(data)
       setLoading(false)
     })
@@ -41,7 +42,7 @@ export default function AnimalList() {
   useEffect(() => { cargar() }, [cargar])
 
   useEffect(() => {
-    window.api.getRazas().then(setRazas)
+    api.getRazas().then(setRazas)
   }, [])
 
   return (

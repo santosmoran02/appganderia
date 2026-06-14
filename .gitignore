@@ -4,6 +4,7 @@ dist-electron/
 .vite/
 *.log
 .claude/
+.env
 web/.env
 
 # Android

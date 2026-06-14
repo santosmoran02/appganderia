@@ -1,3 +1,4 @@
+import { api } from '../api'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
@@ -7,8 +8,8 @@ export default function Dashboard() {
   const navigate = useNavigate()
 
   useEffect(() => {
-    window.api.getEstadisticas().then(s => setTotal(s.total))
-    window.api.getAnimalesPorGranja().then(setPorGranja)
+    api.getEstadisticas().then(s => setTotal(s.total))
+    api.getAnimalesPorGranja().then(setPorGranja)
   }, [])
 
   if (total === null) return <div className="loading">Cargando...</div>

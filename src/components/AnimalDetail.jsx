@@ -1,3 +1,4 @@
+import { api } from '../api'
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate, useLocation, Link } from 'react-router-dom'
 import MedicalRecordForm from './MedicalRecordForm'
@@ -170,14 +171,14 @@ export default function AnimalDetail() {
   const [confirmDeleteDesc, setConfirmDeleteDesc] = useState(null) // id del descendiente a borrar
 
   const cargar = () => {
-    window.api.getAnimal(Number(id)).then(setAnimal)
-    window.api.getHistorialMedico(Number(id)).then(setHistorial)
-    window.api.getDescendencia(Number(id)).then(setDescendencia)
-    window.api.getGestaciones(Number(id)).then(setGestaciones)
+    api.getAnimal(Number(id)).then(setAnimal)
+    api.getHistorialMedico(Number(id)).then(setHistorial)
+    api.getDescendencia(Number(id)).then(setDescendencia)
+    api.getGestaciones(Number(id)).then(setGestaciones)
   }
 
   useEffect(() => { cargar() }, [id, location.key])
-  useEffect(() => { window.api.getGranjas().then(setGranjas) }, [])
+  useEffect(() => { api.getGranjas().then(setGranjas) }, [])
   useEffect(() => {
     if (animal) {
       setEstadoDesde(animal.estado_desde || '')
@@ -186,24 +187,24 @@ export default function AnimalDetail() {
   }, [animal?.id, animal?.estado_desde, animal?.estado_hasta])
 
   const handleDeleteAnimal = async () => {
-    await window.api.deleteAnimal(Number(id))
+    await api.deleteAnimal(Number(id))
     navigate('/animales')
   }
 
   const handleDeleteRegistro = async (regId) => {
-    await window.api.deleteRegistroMedico(regId)
+    await api.deleteRegistroMedico(regId)
     setHistorial(h => h.filter(r => r.id !== regId))
   }
 
   const handleDeleteGestacion = async (gId) => {
-    await window.api.deleteGestacion(gId)
+    await api.deleteGestacion(gId)
     setGestaciones(g => g.filter(x => x.id !== gId))
   }
 
   const handleCambiarEstado = async (nuevoEstado) => {
     if (nuevoEstado === animal.estado) return
     setSavingEstado(true)
-    const updated = await window.api.updateAnimal(animal.id, {
+    const updated = await api.updateAnimal(animal.id, {
       ...animal,
       estado: nuevoEstado,
       estado_desde: null,
@@ -214,7 +215,7 @@ export default function AnimalDetail() {
   }
 
   const handleGuardarEstadoDesde = async (valor) => {
-    const updated = await window.api.updateAnimal(animal.id, {
+    const updated = await api.updateAnimal(animal.id, {
       ...animal,
       estado_desde: valor || null,
     })
@@ -222,7 +223,7 @@ export default function AnimalDetail() {
   }
 
   const handleGuardarEstadoHasta = async (valor) => {
-    const updated = await window.api.updateAnimal(animal.id, {
+    const updated = await api.updateAnimal(animal.id, {
       ...animal,
       estado_hasta: valor || null,
     })
@@ -231,7 +232,7 @@ export default function AnimalDetail() {
 
   const handleCambiarGranja = async (nuevaGranjaId) => {
     setSavingGranja(true)
-    const updated = await window.api.updateAnimal(animal.id, {
+    const updated = await api.updateAnimal(animal.id, {
       ...animal,
       granja_id: nuevaGranjaId,
     })
@@ -240,7 +241,7 @@ export default function AnimalDetail() {
   }
 
   const handleDeleteDescendiente = async (descId) => {
-    await window.api.deleteAnimal(descId)
+    await api.deleteAnimal(descId)
     setDescendencia(d => d.filter(x => x.id !== descId))
   }
 

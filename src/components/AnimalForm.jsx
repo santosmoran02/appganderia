@@ -1,3 +1,4 @@
+import { api } from '../api'
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate, useLocation, Link } from 'react-router-dom'
 
@@ -44,7 +45,7 @@ export default function AnimalForm({ onGranjaChange }) {
 
   useEffect(() => {
     if (isEdit) {
-      window.api.getAnimal(Number(id)).then(a => {
+      api.getAnimal(Number(id)).then(a => {
         if (a) setForm({
           crotal: a.crotal || '',
           nombre: a.nombre || '',
@@ -97,7 +98,7 @@ export default function AnimalForm({ onGranjaChange }) {
         let linkedId = null
         if (c) {
           try {
-            const encontrado = await window.api.getAnimalByCrotal(c)
+            const encontrado = await api.getAnimalByCrotal(c)
             if (encontrado) linkedId = encontrado.id
           } catch (_) { /* si falla la búsqueda, seguimos sin enlace */ }
         }
@@ -133,11 +134,11 @@ export default function AnimalForm({ onGranjaChange }) {
       }
 
       if (isEdit) {
-        await window.api.updateAnimal(Number(id), payload)
+        await api.updateAnimal(Number(id), payload)
         if (granjaId) navigate(`/granjas/${granjaId}`)
         else navigate(`/animales/${id}`)
       } else {
-        await window.api.createAnimal(payload)
+        await api.createAnimal(payload)
         if (granjaId) navigate(`/granjas/${granjaId}`)
         else navigate('/animales')
       }

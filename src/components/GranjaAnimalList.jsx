@@ -1,3 +1,4 @@
+import { api } from '../api'
 import { useEffect, useState, useCallback } from 'react'
 import { useNavigate, useParams, Link } from 'react-router-dom'
 
@@ -38,13 +39,13 @@ export default function GranjaAnimalList({ onGranjaChange }) {
   const [savingNombre, setSavingNombre] = useState(false)
 
   useEffect(() => {
-    window.api.getGranja(Number(granjaId)).then(setGranja)
-    window.api.getRazas().then(setRazas)
+    api.getGranja(Number(granjaId)).then(setGranja)
+    api.getRazas().then(setRazas)
   }, [granjaId])
 
   const cargar = useCallback(() => {
     setLoading(true)
-    window.api.getAnimales({ busqueda, estado, raza, granja_id: Number(granjaId) }).then(data => {
+    api.getAnimales({ busqueda, estado, raza, granja_id: Number(granjaId) }).then(data => {
       setAnimales(data)
       setLoading(false)
     })
@@ -60,7 +61,7 @@ export default function GranjaAnimalList({ onGranjaChange }) {
     const nombre = nuevoNombre.trim()
     if (!nombre) return
     setSavingNombre(true)
-    const updated = await window.api.updateGranja(Number(granjaId), { nombre })
+    const updated = await api.updateGranja(Number(granjaId), { nombre })
     setGranja(updated)
     onGranjaChange?.()
     setShowRenombrar(false)
@@ -68,7 +69,7 @@ export default function GranjaAnimalList({ onGranjaChange }) {
   }
 
   const handleDeleteGranja = async () => {
-    await window.api.deleteGranja(Number(granjaId))
+    await api.deleteGranja(Number(granjaId))
     onGranjaChange?.()
     navigate('/animales')
   }

@@ -1343,3 +1343,80 @@ textarea { resize: vertical; min-height: 80px; }
   transition: background 0.15s;
 }
 .cal-popup-btn:hover { background: var(--green-700); }
+
+/* ===== Login ===== */
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--gray-100);
+}
+
+.login-card {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.1);
+  padding: 40px;
+  width: 400px;
+  max-width: 95vw;
+}
+
+.login-header { text-align: center; margin-bottom: 32px; }
+.login-logo { font-size: 48px; margin-bottom: 8px; }
+.login-title { font-size: 24px; font-weight: 700; color: var(--gray-900); }
+.login-subtitle { color: var(--gray-500); font-size: 14px; margin-top: 4px; }
+
+.auth-error {
+  background: var(--red-100);
+  color: #991b1b;
+  padding: 10px 14px;
+  border-radius: 6px;
+  font-size: 13px;
+  margin-bottom: 16px;
+}
+
+.auth-success {
+  background: var(--green-100);
+  color: var(--green-700);
+  padding: 10px 14px;
+  border-radius: 6px;
+  font-size: 13px;
+  margin-bottom: 16px;
+}
+
+.login-switch {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 13px;
+  color: var(--gray-500);
+}
+
+.login-switch-btn {
+  background: none;
+  border: none;
+  color: var(--green-600);
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 13px;
+}
+.login-switch-btn:hover { text-decoration: underline; }
+
+/* ===== Logout button ===== */
+.btn-logout {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 12px;
+  background: none;
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 6px;
+  color: rgba(255,255,255,0.5);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.btn-logout:hover { background: rgba(255,255,255,0.07); color: #fff; }
+.btn-logout svg { width: 15px; height: 15px; }

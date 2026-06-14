@@ -1,3 +1,4 @@
+import { api } from '../api'
 import { useState, useEffect } from 'react'
 
 // Gestación bovina media: 283 días
@@ -79,9 +80,9 @@ export default function GestacionForm({ animalId, gestacion, onClose, onSaved })
     try {
       let resultado
       if (isEdit) {
-        resultado = await window.api.updateGestacion(gestacion.id, payload)
+        resultado = await api.updateGestacion(gestacion.id, payload)
       } else {
-        resultado = await window.api.createGestacion(payload)
+        resultado = await api.createGestacion(payload)
       }
       onSaved(resultado)
     } catch {

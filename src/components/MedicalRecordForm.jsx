@@ -1,3 +1,4 @@
+import { api } from '../api'
 import { useState } from 'react'
 
 const TIPOS = [
@@ -27,7 +28,7 @@ export default function MedicalRecordForm({ animalId, onClose, onSaved }) {
       veterinario: form.veterinario.trim() || null,
     }
     try {
-      const reg = await window.api.createRegistroMedico(payload)
+      const reg = await api.createRegistroMedico(payload)
       onSaved(reg)
     } catch {
       setSaving(false)

@@ -1,3 +1,4 @@
+import { api } from '../api'
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 
@@ -300,8 +301,8 @@ export default function Calendar() {
   const [eventoSeleccionado, setEventoSeleccionado] = useState(null)
 
   useEffect(() => {
-    window.api.getAllGestacionesCalendario().then(setPartos)
-    window.api.getAnimalesConEstadoHasta().then(setEstadosHasta)
+    api.getAllGestacionesCalendario().then(setPartos)
+    api.getAnimalesConEstadoHasta().then(setEstadosHasta)
   }, [])
 
   const eventos = unificarEventos(partos, estadosHasta)
