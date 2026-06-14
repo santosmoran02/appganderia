@@ -1127,6 +1127,7 @@ textarea { resize: vertical; min-height: 80px; }
   gap: 8px;
 }
 
+
 .cal-semana-dia {
   border: 1px solid var(--gray-200);
   border-radius: var(--radius);

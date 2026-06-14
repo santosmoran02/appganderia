@@ -48,8 +48,9 @@ function checkForUpdates() {
           dialog.showMessageBox({
             type: 'info',
             title: 'Nueva versión disponible',
-            message: `Hay una nueva versión de GanadApp (v${latest}).\n¿Quieres ir a la página de descarga?`,
-            buttons: ['Descargar ahora', 'Más tarde'],
+            message: `Hay una nueva versión de GanadApp disponible: v${latest} (tienes la v${current}).`,
+            detail: `Para actualizar:\n1. Descarga el nuevo instalador desde la página web.\n2. Ejecuta el instalador descargado (no es necesario desinstalar la versión actual).\n3. La nueva versión quedará instalada automáticamente.`,
+            buttons: ['Ir a la página de descarga', 'Más tarde'],
           }).then(({ response }) => {
             if (response === 0) shell.openExternal('https://santosmoran02.github.io/appganderia/')
           })

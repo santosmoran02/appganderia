@@ -99,7 +99,10 @@ function MainApp() {
         <div className="sidebar-footer">
           <a className="sidebar-web-link" href="https://appganderia.vercel.app" target="_blank" rel="noreferrer" onClick={closeSidebar}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-            Versión web
+            <span>
+              Versión web
+              <span className="sidebar-web-url">appganderia.vercel.app</span>
+            </span>
           </a>
           <button className="btn-logout" onClick={handleLogout}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
