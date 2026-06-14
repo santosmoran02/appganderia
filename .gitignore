@@ -4,3 +4,11 @@ dist-electron/
 .vite/
 *.log
 .claude/
+web/.env
+
+# Android
+web/android/.gradle/
+web/android/app/build/
+web/android/build/
+*.apk
+*.aab
