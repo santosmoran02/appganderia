@@ -14,7 +14,6 @@ function MainApp() {
   const navigate = useNavigate()
   const [granjas, setGranjas] = useState([])
   const [showNuevaGranja, setShowNuevaGranja] = useState(false)
-  const [showWebModal, setShowWebModal] = useState(false)
   const [nombreGranja, setNombreGranja] = useState('')
   const [savingGranja, setSavingGranja] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -98,10 +97,22 @@ function MainApp() {
         </nav>
 
         <div className="sidebar-footer">
-          <button className="sidebar-web-link" onClick={() => { setShowWebModal(true); closeSidebar() }}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-            Versión web
-          </button>
+          <a
+            href="https://github.com/santosmoran02/appganderia/releases/latest/download/GanadApp-Setup.exe"
+            className="sidebar-download-link"
+            onClick={closeSidebar}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+            Descargar para Windows
+          </a>
+          <a
+            href="https://github.com/santosmoran02/appganderia/releases/latest/download/GanadApp-Setup.dmg"
+            className="sidebar-download-link"
+            onClick={closeSidebar}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2z"/><path d="M8 12h8M12 8v8"/></svg>
+            Descargar para Mac
+          </a>
           <button className="btn-logout" onClick={handleLogout}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
             Cerrar sesión
@@ -120,31 +131,6 @@ function MainApp() {
           <Route path="/calendario" element={<Calendar />} />
         </Routes>
       </main>
-
-      {showWebModal && (
-        <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setShowWebModal(false)}>
-          <div className="modal">
-            <div className="modal-title">Accede desde el ordenador</div>
-            <p style={{ fontSize: 14, color: 'var(--gray-600)', lineHeight: 1.6, marginBottom: 20 }}>
-              Puedes usar GanadApp desde cualquier navegador sin necesidad de instalar nada. Copia el enlace o ábrelo directamente:
-            </p>
-            <a
-              href="https://appganderia.vercel.app"
-              target="_blank"
-              rel="noreferrer"
-              style={{ display: 'block', background: 'var(--green-50)', border: '1px solid var(--green-600)', borderRadius: 8, padding: '14px 16px', color: 'var(--green-700)', fontWeight: 700, fontSize: 15, textAlign: 'center', textDecoration: 'none', marginBottom: 20 }}
-            >
-              appganderia.vercel.app
-            </a>
-            <div className="modal-footer" style={{ borderTop: 'none', paddingTop: 0, marginTop: 0 }}>
-              <button className="btn btn-secondary" onClick={() => setShowWebModal(false)}>Cerrar</button>
-              <a href="https://appganderia.vercel.app" target="_blank" rel="noreferrer" className="btn btn-primary" style={{ textDecoration: 'none' }}>
-                Abrir en el navegador
-              </a>
-            </div>
-          </div>
-        </div>
-      )}
 
       {showNuevaGranja && (
         <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setShowNuevaGranja(false)}>
