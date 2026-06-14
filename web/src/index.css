@@ -1127,6 +1127,7 @@ textarea { resize: vertical; min-height: 80px; }
   gap: 8px;
 }
 
+
 .cal-semana-dia {
   border: 1px solid var(--gray-200);
   border-radius: var(--radius);
@@ -1400,6 +1401,24 @@ textarea { resize: vertical; min-height: 80px; }
   font-size: 13px;
 }
 .login-switch-btn:hover { text-decoration: underline; }
+
+/* ===== Web link (sidebar) ===== */
+.sidebar-web-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  border-radius: 6px;
+  color: rgba(255,255,255,0.5);
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background 0.15s, color 0.15s;
+}
+.sidebar-web-link:hover { background: rgba(255,255,255,0.07); color: #fff; }
+.sidebar-web-link svg { width: 15px; height: 15px; flex-shrink: 0; }
 
 /* ===== Logout button ===== */
 .btn-logout {
