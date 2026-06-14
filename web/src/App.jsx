@@ -2,7 +2,7 @@ import { Routes, Route, NavLink, useNavigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import { supabase } from './supabase'
 import { api } from './api'
-import Login, { UpdatePassword } from './components/Login'
+import Login from './components/Login'
 import Dashboard from './components/Dashboard'
 import AnimalList from './components/AnimalList'
 import AnimalDetail from './components/AnimalDetail'
@@ -146,24 +146,14 @@ function MainApp() {
 
 export default function App() {
   const [session, setSession] = useState(undefined)
-  const [passwordRecovery, setPasswordRecovery] = useState(false)
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => setSession(session))
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'PASSWORD_RECOVERY') {
-        setPasswordRecovery(true)
-        setSession(session)
-      } else {
-        setPasswordRecovery(false)
-        setSession(session)
-      }
-    })
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => setSession(session))
     return () => subscription.unsubscribe()
   }, [])
 
   if (session === undefined) return <div className="loading" style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Cargando...</div>
   if (!session) return <Login />
-  if (passwordRecovery) return <UpdatePassword onDone={() => setPasswordRecovery(false)} />
   return <MainApp />
 }
