@@ -25,39 +25,11 @@ function calcularEdad(fechaNac) {
   return `${Math.floor(meses / 12)} años`
 }
 
-function exportarCSV(animales) {
-  const encabezados = [
-    'Crotal', 'Nombre', 'Tipo', 'Raza', 'Sexo', 'Estado',
-    'Fecha Nacimiento', 'Edad', 'Peso (kg)', 'Partos',
-    'Madre Crotal', 'Madre Nombre', 'Padre Crotal', 'Padre Nombre', 'Notas',
-  ]
-  const filas = animales.map(a => [
-    a.crotal ?? '',
-    a.nombre ?? '',
-    a.tipo ?? '',
-    a.raza ?? '',
-    a.sexo ?? '',
-    ESTADO_LABEL[a.estado] ?? a.estado ?? '',
-    a.fecha_nacimiento ?? '',
-    calcularEdad(a.fecha_nacimiento),
-    a.peso ?? '',
-    a.partos ?? '',
-    a.madre_crotal ?? '',
-    a.madre_nombre ?? '',
-    a.padre_crotal ?? '',
-    a.padre_nombre ?? '',
-    a.notas ?? '',
-  ])
-  const csv = [encabezados, ...filas]
-    .map(fila => fila.map(v => `"${String(v).replace(/"/g, '""')}"`).join(','))
-    .join('\n')
-  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = `ganadapp-animales-${new Date().toISOString().slice(0, 10)}.csv`
-  a.click()
-  URL.revokeObjectURL(url)
+const GESTACION_ESTADO_LABEL = {
+  en_curso: 'En curso',
+  parto_exitoso: 'Parto exitoso',
+  aborto: 'Aborto',
+  reabsorcion: 'Reabsorción',
 }
 
 function crearCSV(encabezados, filas) {
@@ -66,70 +38,125 @@ function crearCSV(encabezados, filas) {
     .join('\n')
 }
 
-async function exportarBackup() {
+function descargar(blob, nombre) {
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = nombre
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
+async function exportarBackupCSV() {
   const [animales, historial, gestaciones] = await Promise.all([
     api.getAnimales(),
     api.getAllHistorialMedico(),
     api.getAllGestaciones(),
   ])
 
-  const csvAnimales = crearCSV(
-    ['Crotal', 'Nombre', 'Tipo', 'Raza', 'Sexo', 'Estado', 'Fecha Nacimiento', 'Peso (kg)', 'Partos', 'Madre Crotal', 'Madre Nombre', 'Padre Crotal', 'Padre Nombre', 'Notas'],
-    animales.map(a => [a.crotal, a.nombre, a.tipo, a.raza, a.sexo, ESTADO_LABEL[a.estado] ?? a.estado, a.fecha_nacimiento, a.peso, a.partos, a.madre_crotal, a.madre_nombre, a.padre_crotal, a.padre_nombre, a.notas])
-  )
-
-  const csvHistorial = crearCSV(
-    ['Crotal Animal', 'Nombre Animal', 'Tipo', 'Fecha Inicio', 'Fecha Fin', 'Descripción', 'Veterinario'],
-    historial.map(h => [h.animal?.crotal, h.animal?.nombre, h.tipo, h.fecha_inicio, h.fecha_fin, h.descripcion, h.veterinario])
-  )
-
-  const csvGestaciones = crearCSV(
-    ['Crotal Animal', 'Nombre Animal', 'Fecha Inseminación', 'Fecha Parto Estimada', 'Fecha Parto Real', 'Toro / Semilla', 'Estado', 'Observaciones'],
-    gestaciones.map(g => [g.animal?.crotal, g.animal?.nombre, g.fecha_inseminacion, g.fecha_parto_estimada, g.fecha_parto_real, g.nombre_toro, g.estado, g.observaciones])
-  )
-
   const bom = '﻿'
   const zip = new JSZip()
-  zip.file('animales.csv', bom + csvAnimales)
-  zip.file('historial_medico.csv', bom + csvHistorial)
-  zip.file('gestaciones.csv', bom + csvGestaciones)
+  zip.file('animales.csv', bom + crearCSV(
+    ['Crotal', 'Nombre', 'Tipo', 'Raza', 'Sexo', 'Estado', 'Fecha Nacimiento', 'Peso (kg)', 'Partos', 'Madre Crotal', 'Madre Nombre', 'Padre Crotal', 'Padre Nombre', 'Notas'],
+    animales.map(a => [a.crotal, a.nombre, a.tipo, a.raza, a.sexo, ESTADO_LABEL[a.estado] ?? a.estado, a.fecha_nacimiento, a.peso, a.partos, a.madre_crotal, a.madre_nombre, a.padre_crotal, a.padre_nombre, a.notas])
+  ))
+  zip.file('historial_medico.csv', bom + crearCSV(
+    ['Crotal Animal', 'Nombre Animal', 'Tipo', 'Fecha Inicio', 'Fecha Fin', 'Descripción', 'Veterinario'],
+    historial.map(h => [h.animal?.crotal, h.animal?.nombre, h.tipo, h.fecha_inicio, h.fecha_fin, h.descripcion, h.veterinario])
+  ))
+  zip.file('gestaciones.csv', bom + crearCSV(
+    ['Crotal Animal', 'Nombre Animal', 'Fecha Inseminación', 'Fecha Parto Estimada', 'Fecha Parto Real', 'Toro / Semilla', 'Estado', 'Observaciones'],
+    gestaciones.map(g => [g.animal?.crotal, g.animal?.nombre, g.fecha_inseminacion, g.fecha_parto_estimada, g.fecha_parto_real, g.nombre_toro, GESTACION_ESTADO_LABEL[g.estado] ?? g.estado, g.observaciones])
+  ))
 
   const blob = await zip.generateAsync({ type: 'blob' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = `ganadapp-backup-${new Date().toISOString().slice(0, 10)}.zip`
-  a.click()
-  URL.revokeObjectURL(url)
+  descargar(blob, `ganadapp-backup-${new Date().toISOString().slice(0, 10)}.zip`)
 }
 
-function exportarPDF(animales) {
+async function exportarBackupPDF() {
+  const [animales, historial, gestaciones] = await Promise.all([
+    api.getAnimales(),
+    api.getAllHistorialMedico(),
+    api.getAllGestaciones(),
+  ])
+
   const doc = new jsPDF({ orientation: 'landscape' })
+  const fecha = new Date().toLocaleDateString('es-ES')
+  const tableStyle = { fontSize: 8 }
+  const headStyle = { fillColor: [22, 163, 74] }
+
+  // Sección 1: Animales
   doc.setFontSize(16)
-  doc.text('GanadApp — Lista de animales', 14, 16)
-  doc.setFontSize(10)
-  doc.setTextColor(100)
-  doc.text(
-    `Exportado el ${new Date().toLocaleDateString('es-ES')} · ${animales.length} animal${animales.length !== 1 ? 'es' : ''}`,
-    14, 23
-  )
+  doc.setTextColor(0)
+  doc.text('GanadApp — Copia de seguridad', 14, 14)
+  doc.setFontSize(9)
+  doc.setTextColor(120)
+  doc.text(`Exportado el ${fecha}`, 14, 20)
+  doc.setFontSize(12)
+  doc.setTextColor(0)
+  doc.text(`Animales (${animales.length})`, 14, 29)
   autoTable(doc, {
-    startY: 28,
-    head: [['Crotal', 'Nombre', 'Tipo', 'Estado', 'Raza', 'Sexo', 'Edad', 'Peso']],
+    startY: 33,
+    head: [['Crotal', 'Nombre', 'Tipo', 'Estado', 'Raza', 'Sexo', 'Edad', 'Peso', 'Partos', 'Madre', 'Padre', 'Notas']],
     body: animales.map(a => [
-      a.crotal ?? '',
-      a.nombre ?? '',
+      a.crotal ?? '', a.nombre ?? '',
       a.tipo ? a.tipo.charAt(0).toUpperCase() + a.tipo.slice(1) : '',
       ESTADO_LABEL[a.estado] ?? a.estado ?? '',
       a.raza ?? '',
       a.sexo === 'macho' ? 'Macho' : a.sexo === 'hembra' ? 'Hembra' : '',
       calcularEdad(a.fecha_nacimiento),
       a.peso ? `${a.peso} kg` : '',
+      a.partos ?? '',
+      [a.madre_crotal, a.madre_nombre].filter(Boolean).join(' ') || '',
+      [a.padre_crotal, a.padre_nombre].filter(Boolean).join(' ') || '',
+      a.notas ?? '',
     ]),
-    styles: { fontSize: 9 },
-    headStyles: { fillColor: [22, 163, 74] },
+    styles: tableStyle,
+    headStyles: headStyle,
   })
-  doc.save(`ganadapp-animales-${new Date().toISOString().slice(0, 10)}.pdf`)
+
+  // Sección 2: Historial médico
+  doc.addPage()
+  doc.setFontSize(12)
+  doc.setTextColor(0)
+  doc.text(`Historial médico (${historial.length} registros)`, 14, 14)
+  autoTable(doc, {
+    startY: 18,
+    head: [['Crotal', 'Nombre Animal', 'Tipo', 'Fecha Inicio', 'Fecha Fin', 'Descripción', 'Veterinario']],
+    body: historial.map(h => [
+      h.animal?.crotal ?? '', h.animal?.nombre ?? '',
+      h.tipo ?? '', h.fecha_inicio ?? '', h.fecha_fin ?? '',
+      h.descripcion ?? '', h.veterinario ?? '',
+    ]),
+    styles: tableStyle,
+    headStyles: headStyle,
+    columnStyles: { 5: { cellWidth: 80 } },
+  })
+
+  // Sección 3: Gestaciones
+  doc.addPage()
+  doc.setFontSize(12)
+  doc.setTextColor(0)
+  doc.text(`Gestaciones (${gestaciones.length} registros)`, 14, 14)
+  autoTable(doc, {
+    startY: 18,
+    head: [['Crotal', 'Nombre Animal', 'F. Inseminación', 'F. Parto Estimada', 'F. Parto Real', 'Toro / Semilla', 'Estado', 'Observaciones']],
+    body: gestaciones.map(g => [
+      g.animal?.crotal ?? '', g.animal?.nombre ?? '',
+      g.fecha_inseminacion ?? '', g.fecha_parto_estimada ?? '', g.fecha_parto_real ?? '',
+      g.nombre_toro ?? '',
+      GESTACION_ESTADO_LABEL[g.estado] ?? g.estado ?? '',
+      g.observaciones ?? '',
+    ]),
+    styles: tableStyle,
+    headStyles: headStyle,
+    columnStyles: { 7: { cellWidth: 60 } },
+  })
+
+  descargar(
+    new Blob([doc.output('arraybuffer')], { type: 'application/pdf' }),
+    `ganadapp-backup-${new Date().toISOString().slice(0, 10)}.pdf`
+  )
 }
 
 export default function AnimalList() {
@@ -164,30 +191,20 @@ export default function AnimalList() {
         </div>
         <div style={{ display: 'flex', gap: '8px' }}>
           <button
-            className="btn btn-ghost"
-            onClick={() => exportarCSV(animales)}
-            disabled={animales.length === 0}
-            title="Exportar lista como CSV"
+            className="btn btn-secondary"
+            onClick={exportarBackupCSV}
+            title="Copia de seguridad en CSV (ZIP con animales, historial médico y gestaciones)"
           >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            CSV
-          </button>
-          <button
-            className="btn btn-ghost"
-            onClick={() => exportarPDF(animales)}
-            disabled={animales.length === 0}
-            title="Exportar lista como PDF"
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            PDF
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            Copia CSV
           </button>
           <button
             className="btn btn-secondary"
-            onClick={exportarBackup}
-            title="Descargar copia de seguridad completa (ZIP con animales, historial médico y gestaciones)"
+            onClick={exportarBackupPDF}
+            title="Copia de seguridad en PDF (animales, historial médico y gestaciones)"
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-            Copia de seguridad
+            Copia PDF
           </button>
         </div>
       </div>
