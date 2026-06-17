@@ -1,6 +1,8 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { api } from '../api'
+import jsPDF from 'jspdf'
+import autoTable from 'jspdf-autotable'
 
 const ESTADOS = ['', 'en_produccion', 'seca', 'parida', 'ordenar_aparte']
 const ESTADO_LABEL = {
@@ -20,6 +22,70 @@ function calcularEdad(fechaNac) {
   if (meses < 1) return 'Recién nacido'
   if (meses < 24) return `${meses} m`
   return `${Math.floor(meses / 12)} años`
+}
+
+function exportarCSV(animales) {
+  const encabezados = [
+    'Crotal', 'Nombre', 'Tipo', 'Raza', 'Sexo', 'Estado',
+    'Fecha Nacimiento', 'Edad', 'Peso (kg)', 'Partos',
+    'Madre Crotal', 'Madre Nombre', 'Padre Crotal', 'Padre Nombre', 'Notas',
+  ]
+  const filas = animales.map(a => [
+    a.crotal ?? '',
+    a.nombre ?? '',
+    a.tipo ?? '',
+    a.raza ?? '',
+    a.sexo ?? '',
+    ESTADO_LABEL[a.estado] ?? a.estado ?? '',
+    a.fecha_nacimiento ?? '',
+    calcularEdad(a.fecha_nacimiento),
+    a.peso ?? '',
+    a.partos ?? '',
+    a.madre_crotal ?? '',
+    a.madre_nombre ?? '',
+    a.padre_crotal ?? '',
+    a.padre_nombre ?? '',
+    a.notas ?? '',
+  ])
+  const csv = [encabezados, ...filas]
+    .map(fila => fila.map(v => `"${String(v).replace(/"/g, '""')}"`).join(','))
+    .join('\n')
+  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `ganadapp-animales-${new Date().toISOString().slice(0, 10)}.csv`
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
+function exportarPDF(animales) {
+  const doc = new jsPDF({ orientation: 'landscape' })
+  doc.setFontSize(16)
+  doc.text('GanadApp — Lista de animales', 14, 16)
+  doc.setFontSize(10)
+  doc.setTextColor(100)
+  doc.text(
+    `Exportado el ${new Date().toLocaleDateString('es-ES')} · ${animales.length} animal${animales.length !== 1 ? 'es' : ''}`,
+    14, 23
+  )
+  autoTable(doc, {
+    startY: 28,
+    head: [['Crotal', 'Nombre', 'Tipo', 'Estado', 'Raza', 'Sexo', 'Edad', 'Peso']],
+    body: animales.map(a => [
+      a.crotal ?? '',
+      a.nombre ?? '',
+      a.tipo ? a.tipo.charAt(0).toUpperCase() + a.tipo.slice(1) : '',
+      ESTADO_LABEL[a.estado] ?? a.estado ?? '',
+      a.raza ?? '',
+      a.sexo === 'macho' ? 'Macho' : a.sexo === 'hembra' ? 'Hembra' : '',
+      calcularEdad(a.fecha_nacimiento),
+      a.peso ? `${a.peso} kg` : '',
+    ]),
+    styles: { fontSize: 9 },
+    headStyles: { fillColor: [22, 163, 74] },
+  })
+  doc.save(`ganadapp-animales-${new Date().toISOString().slice(0, 10)}.pdf`)
 }
 
 export default function AnimalList() {
@@ -51,6 +117,26 @@ export default function AnimalList() {
         <div>
           <h1 className="page-title">Animales</h1>
           <p className="page-subtitle">{animales.length} animal{animales.length !== 1 ? 'es' : ''} encontrado{animales.length !== 1 ? 's' : ''}</p>
+        </div>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button
+            className="btn btn-ghost"
+            onClick={() => exportarCSV(animales)}
+            disabled={animales.length === 0}
+            title="Exportar como CSV"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            CSV
+          </button>
+          <button
+            className="btn btn-ghost"
+            onClick={() => exportarPDF(animales)}
+            disabled={animales.length === 0}
+            title="Exportar como PDF"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            PDF
+          </button>
         </div>
       </div>
 
