@@ -30,6 +30,9 @@ jobs:
 
       - name: Construir frontend (Vite)
         run: npm run build
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
 
       - name: Empaquetar instalador Windows
         run: npx electron-builder --win --x64 --publish never
@@ -61,6 +64,9 @@ jobs:
 
       - name: Construir frontend (Vite)
         run: npm run build
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
 
       - name: Empaquetar instalador Mac
         run: npx electron-builder --mac --x64 --publish never
