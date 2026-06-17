@@ -156,6 +156,14 @@ export const api = {
   },
 
   // ---- Historial médico ----
+  getAllHistorialMedico: async () => {
+    const { data } = await supabase
+      .from('historial_medico')
+      .select('*, animal:animal_id (crotal, nombre)')
+      .order('fecha', { ascending: false })
+    return data || []
+  },
+
   getHistorialMedico: async (animalId) => {
     const { data } = await supabase
       .from('historial_medico')
@@ -183,6 +191,14 @@ export const api = {
   },
 
   // ---- Gestaciones ----
+  getAllGestaciones: async () => {
+    const { data } = await supabase
+      .from('gestaciones')
+      .select('*, animal:animal_id (crotal, nombre)')
+      .order('fecha_inseminacion', { ascending: false })
+    return data || []
+  },
+
   getGestaciones: async (animalId) => {
     const { data } = await supabase
       .from('gestaciones')

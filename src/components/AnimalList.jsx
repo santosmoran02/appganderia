@@ -3,6 +3,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
+import JSZip from 'jszip'
 
 const ESTADOS = ['', 'en_produccion', 'seca', 'parida', 'ordenar_aparte']
 const ESTADO_LABEL = {
@@ -55,6 +56,49 @@ function exportarCSV(animales) {
   const a = document.createElement('a')
   a.href = url
   a.download = `ganadapp-animales-${new Date().toISOString().slice(0, 10)}.csv`
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
+function crearCSV(encabezados, filas) {
+  return [encabezados, ...filas]
+    .map(fila => fila.map(v => `"${String(v ?? '').replace(/"/g, '""')}"`).join(','))
+    .join('\n')
+}
+
+async function exportarBackup() {
+  const [animales, historial, gestaciones] = await Promise.all([
+    api.getAnimales(),
+    api.getAllHistorialMedico(),
+    api.getAllGestaciones(),
+  ])
+
+  const csvAnimales = crearCSV(
+    ['Crotal', 'Nombre', 'Tipo', 'Raza', 'Sexo', 'Estado', 'Fecha Nacimiento', 'Peso (kg)', 'Partos', 'Madre Crotal', 'Madre Nombre', 'Padre Crotal', 'Padre Nombre', 'Notas'],
+    animales.map(a => [a.crotal, a.nombre, a.tipo, a.raza, a.sexo, ESTADO_LABEL[a.estado] ?? a.estado, a.fecha_nacimiento, a.peso, a.partos, a.madre_crotal, a.madre_nombre, a.padre_crotal, a.padre_nombre, a.notas])
+  )
+
+  const csvHistorial = crearCSV(
+    ['Crotal Animal', 'Nombre Animal', 'Tipo', 'Fecha Inicio', 'Fecha Fin', 'Descripción', 'Veterinario'],
+    historial.map(h => [h.animal?.crotal, h.animal?.nombre, h.tipo, h.fecha_inicio, h.fecha_fin, h.descripcion, h.veterinario])
+  )
+
+  const csvGestaciones = crearCSV(
+    ['Crotal Animal', 'Nombre Animal', 'Fecha Inseminación', 'Fecha Parto Estimada', 'Fecha Parto Real', 'Toro / Semilla', 'Estado', 'Observaciones'],
+    gestaciones.map(g => [g.animal?.crotal, g.animal?.nombre, g.fecha_inseminacion, g.fecha_parto_estimada, g.fecha_parto_real, g.nombre_toro, g.estado, g.observaciones])
+  )
+
+  const bom = '﻿'
+  const zip = new JSZip()
+  zip.file('animales.csv', bom + csvAnimales)
+  zip.file('historial_medico.csv', bom + csvHistorial)
+  zip.file('gestaciones.csv', bom + csvGestaciones)
+
+  const blob = await zip.generateAsync({ type: 'blob' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `ganadapp-backup-${new Date().toISOString().slice(0, 10)}.zip`
   a.click()
   URL.revokeObjectURL(url)
 }
@@ -123,7 +167,7 @@ export default function AnimalList() {
             className="btn btn-ghost"
             onClick={() => exportarCSV(animales)}
             disabled={animales.length === 0}
-            title="Exportar como CSV"
+            title="Exportar lista como CSV"
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             CSV
@@ -132,10 +176,18 @@ export default function AnimalList() {
             className="btn btn-ghost"
             onClick={() => exportarPDF(animales)}
             disabled={animales.length === 0}
-            title="Exportar como PDF"
+            title="Exportar lista como PDF"
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             PDF
+          </button>
+          <button
+            className="btn btn-secondary"
+            onClick={exportarBackup}
+            title="Descargar copia de seguridad completa (ZIP con animales, historial médico y gestaciones)"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            Copia de seguridad
           </button>
         </div>
       </div>
