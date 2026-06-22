@@ -505,6 +505,12 @@ export default function AnimalDetail() {
                             <span className="info-label">Inseminación</span>
                             <span className="info-value">{formatFecha(g.fecha_inseminacion)}</span>
                           </div>
+                          {g.fecha_secado_estimada && (
+                            <div className="info-item">
+                              <span className="info-label">Secado estimado</span>
+                              <span className="info-value">{formatFecha(g.fecha_secado_estimada)}</span>
+                            </div>
+                          )}
                           {g.fecha_parto_estimada && (
                             <div className="info-item">
                               <span className="info-label">Parto estimado</span>

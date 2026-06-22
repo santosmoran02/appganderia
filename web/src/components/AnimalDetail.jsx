@@ -347,6 +347,7 @@ export default function AnimalDetail() {
                         </div>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 12, marginBottom: g.observaciones ? 12 : 0 }}>
                           <div className="info-item"><span className="info-label">Inseminación</span><span className="info-value">{formatFecha(g.fecha_inseminacion)}</span></div>
+                          {g.fecha_secado_estimada && <div className="info-item"><span className="info-label">Secado estimado</span><span className="info-value">{formatFecha(g.fecha_secado_estimada)}</span></div>}
                           {g.fecha_parto_estimada && <div className="info-item"><span className="info-label">Parto estimado</span><span className="info-value">{formatFecha(g.fecha_parto_estimada)}</span></div>}
                           {g.fecha_parto_real && <div className="info-item"><span className="info-label">Parto real</span><span className="info-value" style={{ color: 'var(--green-600)', fontWeight: 600 }}>{formatFecha(g.fecha_parto_real)}</span></div>}
                           {semanas && <div className="info-item"><span className="info-label">Tiempo de gestación</span><span className="info-value" style={{ color: 'var(--blue-500)', fontWeight: 600 }}>{semanas}</span></div>}

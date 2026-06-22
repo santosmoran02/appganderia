@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { api } from '../api'
 
 const DIAS_GESTACION = 283
+const MESES_SECADO = 7
 
 function sumarDias(fechaStr, dias) {
   const d = new Date(fechaStr + 'T00:00:00')
@@ -9,8 +10,15 @@ function sumarDias(fechaStr, dias) {
   return d.toISOString().split('T')[0]
 }
 
+function sumarMeses(fechaStr, meses) {
+  const d = new Date(fechaStr + 'T00:00:00')
+  d.setMonth(d.getMonth() + meses)
+  return d.toISOString().split('T')[0]
+}
+
 const EMPTY = {
   fecha_inseminacion: '',
+  fecha_secado_estimada: '',
   fecha_parto_estimada: '',
   fecha_parto_real: '',
   nombre_toro: '',
@@ -31,6 +39,7 @@ export default function GestacionForm({ animalId, gestacion, onClose, onSaved })
     isEdit
       ? {
           fecha_inseminacion: gestacion.fecha_inseminacion || '',
+          fecha_secado_estimada: gestacion.fecha_secado_estimada || '',
           fecha_parto_estimada: gestacion.fecha_parto_estimada || '',
           fecha_parto_real: gestacion.fecha_parto_real || '',
           nombre_toro: gestacion.nombre_toro || '',
@@ -46,6 +55,7 @@ export default function GestacionForm({ animalId, gestacion, onClose, onSaved })
     setForm(f => {
       const next = { ...f, [field]: value }
       if (field === 'fecha_inseminacion' && value) {
+        next.fecha_secado_estimada = sumarMeses(value, MESES_SECADO)
         next.fecha_parto_estimada = sumarDias(value, DIAS_GESTACION)
       }
       return next
@@ -68,6 +78,7 @@ export default function GestacionForm({ animalId, gestacion, onClose, onSaved })
     const payload = {
       animal_id: animalId,
       fecha_inseminacion: form.fecha_inseminacion,
+      fecha_secado_estimada: form.fecha_secado_estimada || null,
       fecha_parto_estimada: form.fecha_parto_estimada || null,
       fecha_parto_real: form.fecha_parto_real || null,
       nombre_toro: form.nombre_toro.trim() || null,
@@ -99,6 +110,11 @@ export default function GestacionForm({ animalId, gestacion, onClose, onSaved })
               <label>Fecha de inseminación <span className="required">*</span></label>
               <input type="date" value={form.fecha_inseminacion} onChange={e => set('fecha_inseminacion', e.target.value)} />
               {errors.fecha_inseminacion && <span className="form-error">{errors.fecha_inseminacion}</span>}
+            </div>
+            <div className="form-group">
+              <label>Fecha estimada de secado</label>
+              <input type="date" value={form.fecha_secado_estimada} onChange={e => set('fecha_secado_estimada', e.target.value)} />
+              <span style={{ fontSize: 11, color: 'var(--gray-400)', marginTop: 3 }}>Se calcula automáticamente (+7 meses)</span>
             </div>
             <div className="form-group">
               <label>Fecha estimada de parto</label>

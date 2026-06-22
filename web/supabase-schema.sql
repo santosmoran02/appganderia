@@ -65,6 +65,7 @@ CREATE TABLE IF NOT EXISTS gestaciones (
   user_id              UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   animal_id            BIGINT NOT NULL REFERENCES animales(id) ON DELETE CASCADE,
   fecha_inseminacion   TEXT NOT NULL,
+  fecha_secado_estimada TEXT,
   fecha_parto_estimada TEXT,
   fecha_parto_real     TEXT,
   nombre_toro          TEXT,

@@ -38,9 +38,12 @@ function formatFechaCal(iso) {
 function unificarEventos(partos, estadosHasta) {
   return [
     ...partos.map(e => ({ ...e, tipo: 'parto', fecha: e.fecha_parto_estimada })),
+    ...partos.filter(e => e.fecha_secado_estimada).map(e => ({ ...e, tipo: 'secado', fecha: e.fecha_secado_estimada })),
     ...estadosHasta.map(e => ({ ...e, tipo: 'estado', fecha: e.estado_hasta })),
   ]
 }
+
+const ICONO_EVENTO = { parto: '🐄', secado: '🥛', estado: '🔔' }
 
 function PopupEvento({ evento, onClose, onIr }) {
   const ref = useRef(null)
@@ -50,15 +53,15 @@ function PopupEvento({ evento, onClose, onIr }) {
     return () => document.removeEventListener('mousedown', handler)
   }, [onClose])
 
-  const esParto = evento.tipo === 'parto'
-  const nombre = esParto ? (evento.animal_nombre || evento.crotal) : (evento.nombre || evento.crotal)
-  const animalId = esParto ? evento.animal_id : evento.id
+  const esGestacion = evento.tipo === 'parto' || evento.tipo === 'secado'
+  const nombre = esGestacion ? (evento.animal_nombre || evento.crotal) : (evento.nombre || evento.crotal)
+  const animalId = esGestacion ? evento.animal_id : evento.id
 
   return (
     <div className="cal-popup-overlay">
       <div className="cal-popup" ref={ref}>
         <div className="cal-popup-header">
-          <span className="cal-popup-icon">{esParto ? '🐄' : '🔔'}</span>
+          <span className="cal-popup-icon">{ICONO_EVENTO[evento.tipo]}</span>
           <div style={{ flex: 1 }}>
             <div className="cal-popup-nombre">{nombre}</div>
             <div className="cal-popup-crotal">#{evento.crotal}</div>
@@ -68,8 +71,14 @@ function PopupEvento({ evento, onClose, onIr }) {
           </button>
         </div>
         <div className="cal-popup-body">
-          {esParto ? (
+          {esGestacion ? (
             <>
+              {evento.tipo === 'secado' && (
+                <div className="cal-popup-row">
+                  <span className="cal-popup-label">Secado estimado</span>
+                  <span className="cal-popup-value">{formatFechaCal(evento.fecha_secado_estimada)}</span>
+                </div>
+              )}
               <div className="cal-popup-row">
                 <span className="cal-popup-label">Parto estimado</span>
                 <span className="cal-popup-value">{formatFechaCal(evento.fecha_parto_estimada)}</span>
@@ -117,15 +126,16 @@ function PopupEvento({ evento, onClose, onIr }) {
 }
 
 function EventoItem({ evento, onSelect }) {
-  const esParto = evento.tipo === 'parto'
+  const esGestacion = evento.tipo === 'parto' || evento.tipo === 'secado'
+  const clase = evento.tipo === 'estado' ? 'cal-evento--estado' : evento.tipo === 'secado' ? 'cal-evento--secado' : ''
   return (
     <div
-      className={`cal-evento ${esParto ? '' : 'cal-evento--estado'}`}
+      className={`cal-evento ${clase}`}
       onClick={(e) => { e.stopPropagation(); onSelect(evento) }}
     >
-      <span className="cal-evento-icon">{esParto ? '🐄' : '🔔'}</span>
+      <span className="cal-evento-icon">{ICONO_EVENTO[evento.tipo]}</span>
       <span className="cal-evento-label">
-        {esParto ? (evento.animal_nombre || evento.crotal) : (evento.nombre || evento.crotal)}
+        {esGestacion ? (evento.animal_nombre || evento.crotal) : (evento.nombre || evento.crotal)}
       </span>
     </div>
   )
@@ -154,6 +164,7 @@ function VistaAnual({ eventos, año, onNavigate, onSelect }) {
         {MESES.map((mes, idx) => {
           const evts = porMes[idx]
           const nPartos = evts.filter(e => e.tipo === 'parto').length
+          const nSecados = evts.filter(e => e.tipo === 'secado').length
           const nEstados = evts.filter(e => e.tipo === 'estado').length
           return (
             <div key={idx} className={`cal-mes-card ${evts.length > 0 ? 'cal-mes-card--activo' : ''}`}>
@@ -161,6 +172,7 @@ function VistaAnual({ eventos, año, onNavigate, onSelect }) {
                 <span className="cal-mes-nombre">{mes}</span>
                 <div style={{ display: 'flex', gap: 4 }}>
                   {nPartos > 0 && <span className="cal-mes-badge">{nPartos} parto{nPartos !== 1 ? 's' : ''}</span>}
+                  {nSecados > 0 && <span className="cal-mes-badge cal-mes-badge--secado">{nSecados} secado{nSecados !== 1 ? 's' : ''}</span>}
                   {nEstados > 0 && <span className="cal-mes-badge cal-mes-badge--estado">{nEstados} estado{nEstados !== 1 ? 's' : ''}</span>}
                 </div>
               </div>
@@ -170,11 +182,12 @@ function VistaAnual({ eventos, año, onNavigate, onSelect }) {
                 <div className="cal-mes-eventos">
                   {evts.map((e, i) => {
                     const d = new Date(e.fecha + 'T00:00:00')
-                    const nombre = e.tipo === 'parto' ? (e.animal_nombre || e.crotal) : (e.nombre || e.crotal)
+                    const esGestacion = e.tipo === 'parto' || e.tipo === 'secado'
+                    const nombre = esGestacion ? (e.animal_nombre || e.crotal) : (e.nombre || e.crotal)
                     return (
                       <div key={i} className="cal-mes-evento-row" onClick={() => onSelect(e)}>
                         <span className="cal-mes-evento-dia">{d.getDate()}</span>
-                        <span className="cal-mes-evento-icon">{e.tipo === 'parto' ? '🐄' : '🔔'}</span>
+                        <span className="cal-mes-evento-icon">{ICONO_EVENTO[e.tipo]}</span>
                         <span className="cal-mes-evento-animal">{nombre}</span>
                       </div>
                     )
@@ -305,6 +318,7 @@ export default function Calendar() {
   }, [])
 
   const eventos = unificarEventos(partos, estadosHasta)
+  const secados = partos.filter(p => p.fecha_secado_estimada).length
 
   const handleNav = (delta) => {
     setFecha(prev => {
@@ -322,7 +336,7 @@ export default function Calendar() {
         <div>
           <h1 className="cal-titulo">Calendario</h1>
           <p className="cal-subtitulo">
-            {partos.length} parto{partos.length !== 1 ? 's' : ''} · {estadosHasta.length} fin{estadosHasta.length !== 1 ? 'es' : ''} de estado
+            {partos.length} parto{partos.length !== 1 ? 's' : ''} · {secados} secado{secados !== 1 ? 's' : ''} · {estadosHasta.length} fin{estadosHasta.length !== 1 ? 'es' : ''} de estado
           </p>
         </div>
         <div className="cal-controles">
@@ -337,6 +351,7 @@ export default function Calendar() {
 
       <div style={{ display: 'flex', gap: 16, marginBottom: 16, flexWrap: 'wrap' }}>
         <div className="cal-leyenda-item"><span className="cal-leyenda-dot cal-leyenda-dot--parto" />Parto estimado</div>
+        <div className="cal-leyenda-item"><span className="cal-leyenda-dot cal-leyenda-dot--secado" />Secado estimado</div>
         <div className="cal-leyenda-item"><span className="cal-leyenda-dot cal-leyenda-dot--estado" />Fin de estado</div>
       </div>
 
