@@ -724,7 +724,7 @@ export default function AnimalDetail() {
                       {d.nombre && <div className="genea-nombre">{d.nombre}</div>}
                       <div style={{ marginTop: 6 }}>
                         <span className={`badge badge-${d.estado}`} style={{ fontSize: 10 }}>
-                          {d.estado === 'activo' ? 'Activo' : d.estado === 'vendido' ? 'Vendido' : 'Fallecido'}
+                          {ESTADO_LABEL_COMPLETO[d.estado] || d.estado}
                         </span>
                       </div>
                     </div>
