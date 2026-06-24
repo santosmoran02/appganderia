@@ -1504,7 +1504,7 @@ body { overflow: auto; }
     background: var(--gray-900);
     z-index: 150;
     align-items: center;
-    padding: 0 16px;
+    padding: env(safe-area-inset-top, 0px) 16px 0 16px;
     gap: 12px;
   }
   .mobile-logo-icon { font-size: 22px; }
@@ -1529,6 +1529,9 @@ body { overflow: auto; }
     width: 240px;
     z-index: 200;
     transition: left 0.25s ease;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    overflow-y: auto;
   }
   .sidebar--open { left: 0; }
   .sidebar .sidebar-logo { display: none; }
@@ -1544,7 +1547,7 @@ body { overflow: auto; }
   /* Contenido principal */
   .main-content {
     padding: 16px;
-    padding-top: 68px;
+    padding-top: calc(68px + env(safe-area-inset-top, 0px));
   }
 
   /* Encabezados de página */

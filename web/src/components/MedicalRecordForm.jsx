@@ -10,8 +10,19 @@ const TIPOS = [
   { value: 'cirugia', label: 'Cirugía' },
 ]
 
-export default function MedicalRecordForm({ animalId, onClose, onSaved }) {
-  const [form, setForm] = useState({ tipo: 'revision', fecha_inicio: '', fecha_fin: '', descripcion: '', veterinario: '' })
+export default function MedicalRecordForm({ animalId, registro, onClose, onSaved }) {
+  const isEdit = Boolean(registro)
+  const [form, setForm] = useState(
+    isEdit
+      ? {
+          tipo: registro.tipo || 'revision',
+          fecha_inicio: registro.fecha_inicio || '',
+          fecha_fin: registro.fecha_fin || '',
+          descripcion: registro.descripcion || '',
+          veterinario: registro.veterinario || '',
+        }
+      : { tipo: 'revision', fecha_inicio: '', fecha_fin: '', descripcion: '', veterinario: '' }
+  )
   const [saving, setSaving] = useState(false)
 
   const set = (field, value) => setForm(f => ({ ...f, [field]: value }))
@@ -28,7 +39,9 @@ export default function MedicalRecordForm({ animalId, onClose, onSaved }) {
       veterinario: form.veterinario.trim() || null,
     }
     try {
-      const reg = await api.createRegistroMedico(payload)
+      const reg = isEdit
+        ? await api.updateRegistroMedico(registro.id, payload)
+        : await api.createRegistroMedico(payload)
       onSaved(reg)
     } catch {
       setSaving(false)
@@ -38,7 +51,7 @@ export default function MedicalRecordForm({ animalId, onClose, onSaved }) {
   return (
     <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
       <div className="modal">
-        <div className="modal-title">Nuevo registro médico</div>
+        <div className="modal-title">{isEdit ? 'Editar registro médico' : 'Nuevo registro médico'}</div>
         <form onSubmit={handleSubmit}>
           <div className="form-group" style={{ marginBottom: 14 }}>
             <label>Tipo</label>
@@ -71,7 +84,7 @@ export default function MedicalRecordForm({ animalId, onClose, onSaved }) {
           <div className="modal-footer">
             <button type="button" className="btn btn-secondary" onClick={onClose}>Cancelar</button>
             <button type="submit" className="btn btn-primary" disabled={saving}>
-              {saving ? 'Guardando...' : 'Guardar registro'}
+              {saving ? 'Guardando...' : isEdit ? 'Guardar cambios' : 'Guardar registro'}
             </button>
           </div>
         </form>

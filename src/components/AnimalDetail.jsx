@@ -160,6 +160,7 @@ export default function AnimalDetail() {
   const [gestaciones, setGestaciones] = useState([])
   const [tab, setTab] = useState('info')
   const [showMedForm, setShowMedForm] = useState(false)
+  const [editingRegistro, setEditingRegistro] = useState(null)
   const [showGestacionForm, setShowGestacionForm] = useState(false)
   const [editingGestacion, setEditingGestacion] = useState(null)
   const [savingEstado, setSavingEstado] = useState(false)
@@ -574,7 +575,7 @@ export default function AnimalDetail() {
         <div>
           <div className="historial-header">
             <div style={{ fontWeight: 600, color: 'var(--gray-700)' }}>{historial.length} registro{historial.length !== 1 ? 's' : ''}</div>
-            <button className="btn btn-primary" onClick={() => setShowMedForm(true)}>
+            <button className="btn btn-primary" onClick={() => { setEditingRegistro(null); setShowMedForm(true) }}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
               Añadir registro
             </button>
@@ -624,9 +625,14 @@ export default function AnimalDetail() {
                       {r.descripcion && <p className="historial-desc">{r.descripcion}</p>}
                       {r.veterinario && <p className="historial-vet">Veterinario: <strong>{r.veterinario}</strong></p>}
                     </div>
-                    <button className="historial-del-btn" title="Eliminar registro" onClick={() => handleDeleteRegistro(r.id)}>
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
-                    </button>
+                    <div style={{ display: 'flex', gap: 4, flexShrink: 0, alignSelf: 'flex-start' }}>
+                      <button className="btn-icon" title="Editar registro" onClick={() => { setEditingRegistro(r); setShowMedForm(true) }}>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                      </button>
+                      <button className="historial-del-btn" title="Eliminar registro" onClick={() => handleDeleteRegistro(r.id)}>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+                      </button>
+                    </div>
                   </div>
                 )
               })}
@@ -795,10 +801,12 @@ export default function AnimalDetail() {
       {showMedForm && (
         <MedicalRecordForm
           animalId={Number(id)}
-          onClose={() => setShowMedForm(false)}
+          registro={editingRegistro}
+          onClose={() => { setShowMedForm(false); setEditingRegistro(null) }}
           onSaved={(reg) => {
-            setHistorial(h => [reg, ...h])
+            setHistorial(h => editingRegistro ? h.map(r => r.id === reg.id ? reg : r) : [reg, ...h])
             setShowMedForm(false)
+            setEditingRegistro(null)
           }}
         />
       )}

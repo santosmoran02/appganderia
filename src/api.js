@@ -186,6 +186,16 @@ export const api = {
     return result
   },
 
+  updateRegistroMedico: async (id, data) => {
+    const payload = {
+      ...data,
+      fecha: data.fecha_inicio || data.fecha_fin || '',
+    }
+    const { data: result, error } = await supabase.from('historial_medico').update(payload).eq('id', id).select().single()
+    if (error) throw error
+    return result
+  },
+
   deleteRegistroMedico: async (id) => {
     await supabase.from('historial_medico').delete().eq('id', id)
   },
