@@ -33,9 +33,11 @@ const GESTACION_ESTADO_LABEL = {
 }
 
 function crearCSV(encabezados, filas) {
-  return [encabezados, ...filas]
-    .map(fila => fila.map(v => `"${String(v ?? '').replace(/"/g, '""')}"`).join(','))
-    .join('\n')
+  // Excel en español usa ';' como separador de columnas (la ',' es el decimal),
+  // así que sin esto los datos aparecen amontonados en una sola columna.
+  return 'sep=;\r\n' + [encabezados, ...filas]
+    .map(fila => fila.map(v => `"${String(v ?? '').replace(/"/g, '""')}"`).join(';'))
+    .join('\r\n')
 }
 
 function descargar(blob, nombre) {
