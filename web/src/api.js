@@ -285,21 +285,29 @@ export const api = {
 
   createGranja: async (data) => {
     const userId = await getUserId()
-    const { data: result } = await supabase
+    const { data: result, error } = await supabase
       .from('granjas')
       .insert({ ...data, user_id: userId })
       .select()
       .single()
+    if (error) {
+      if (error.code === '23505') throw new Error('UNIQUE constraint failed: granjas.nombre')
+      throw error
+    }
     return result
   },
 
   updateGranja: async (id, data) => {
-    const { data: result } = await supabase
+    const { data: result, error } = await supabase
       .from('granjas')
       .update(data)
       .eq('id', id)
       .select()
       .single()
+    if (error) {
+      if (error.code === '23505') throw new Error('UNIQUE constraint failed: granjas.nombre')
+      throw error
+    }
     return result
   },
 

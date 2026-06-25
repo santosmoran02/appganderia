@@ -16,6 +16,7 @@ function MainApp() {
   const [showNuevaGranja, setShowNuevaGranja] = useState(false)
   const [nombreGranja, setNombreGranja] = useState('')
   const [savingGranja, setSavingGranja] = useState(false)
+  const [errorGranja, setErrorGranja] = useState('')
 
   const cargarGranjas = () => api.getGranjas().then(setGranjas)
 
@@ -25,12 +26,18 @@ function MainApp() {
     const nombre = nombreGranja.trim()
     if (!nombre) return
     setSavingGranja(true)
-    const nueva = await api.createGranja({ nombre })
-    setGranjas(gs => [...gs, nueva].sort((a, b) => a.nombre.localeCompare(b.nombre)))
-    setNombreGranja('')
-    setShowNuevaGranja(false)
-    setSavingGranja(false)
-    navigate(`/granjas/${nueva.id}`)
+    setErrorGranja('')
+    try {
+      const nueva = await api.createGranja({ nombre })
+      setGranjas(gs => [...gs, nueva].sort((a, b) => a.nombre.localeCompare(b.nombre)))
+      setNombreGranja('')
+      setShowNuevaGranja(false)
+      navigate(`/granjas/${nueva.id}`)
+    } catch (err) {
+      setErrorGranja(err.message?.includes('UNIQUE') ? 'Ya existe una granja con ese nombre' : 'No se pudo crear la granja')
+    } finally {
+      setSavingGranja(false)
+    }
   }
 
   const handleLogout = async () => {
@@ -60,7 +67,7 @@ function MainApp() {
 
           <div className="sidebar-section-header">
             <span className="sidebar-section-label">Granjas</span>
-            <button className="sidebar-section-add" title="Nueva granja" onClick={() => { setNombreGranja(''); setShowNuevaGranja(true) }}>
+            <button className="sidebar-section-add" title="Nueva granja" onClick={() => { setNombreGranja(''); setErrorGranja(''); setShowNuevaGranja(true) }}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             </button>
           </div>
@@ -106,11 +113,12 @@ function MainApp() {
               <input
                 type="text"
                 value={nombreGranja}
-                onChange={e => setNombreGranja(e.target.value)}
+                onChange={e => { setNombreGranja(e.target.value); setErrorGranja('') }}
                 placeholder="Ej: Cuadra Norte, Finca El Pino..."
                 autoFocus
                 onKeyDown={e => e.key === 'Enter' && handleCreateGranja()}
               />
+              {errorGranja && <span className="form-error">{errorGranja}</span>}
             </div>
             <div className="modal-footer">
               <button className="btn btn-secondary" onClick={() => setShowNuevaGranja(false)}>Cancelar</button>

@@ -11,6 +11,11 @@ CREATE TABLE IF NOT EXISTS granjas (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- Un mismo usuario no puede tener dos granjas con el mismo nombre
+-- (sin distinguir mayúsculas/minúsculas ni espacios al principio/final)
+CREATE UNIQUE INDEX IF NOT EXISTS granjas_user_nombre_unique
+  ON granjas (user_id, lower(trim(nombre)));
+
 -- Animales
 CREATE TABLE IF NOT EXISTS animales (
   id               BIGSERIAL PRIMARY KEY,

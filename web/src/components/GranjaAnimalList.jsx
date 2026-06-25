@@ -37,6 +37,7 @@ export default function GranjaAnimalList({ onGranjaChange }) {
   const [showRenombrar, setShowRenombrar] = useState(false)
   const [nuevoNombre, setNuevoNombre] = useState('')
   const [savingNombre, setSavingNombre] = useState(false)
+  const [errorNombre, setErrorNombre] = useState('')
 
   useEffect(() => {
     api.getGranja(Number(granjaId)).then(setGranja)
@@ -61,11 +62,17 @@ export default function GranjaAnimalList({ onGranjaChange }) {
     const nombre = nuevoNombre.trim()
     if (!nombre) return
     setSavingNombre(true)
-    const updated = await api.updateGranja(Number(granjaId), { nombre })
-    setGranja(updated)
-    onGranjaChange?.()
-    setShowRenombrar(false)
-    setSavingNombre(false)
+    setErrorNombre('')
+    try {
+      const updated = await api.updateGranja(Number(granjaId), { nombre })
+      setGranja(updated)
+      onGranjaChange?.()
+      setShowRenombrar(false)
+    } catch (err) {
+      setErrorNombre(err.message?.includes('UNIQUE') ? 'Ya existe una granja con ese nombre' : 'No se pudo cambiar el nombre')
+    } finally {
+      setSavingNombre(false)
+    }
   }
 
   const handleDeleteGranja = async () => {
@@ -88,7 +95,7 @@ export default function GranjaAnimalList({ onGranjaChange }) {
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
             Eliminar granja
           </button>
-          <button className="btn btn-secondary" onClick={() => { setNuevoNombre(granja.nombre); setShowRenombrar(true) }}>
+          <button className="btn btn-secondary" onClick={() => { setNuevoNombre(granja.nombre); setErrorNombre(''); setShowRenombrar(true) }}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
             Cambiar nombre
           </button>
@@ -167,7 +174,8 @@ export default function GranjaAnimalList({ onGranjaChange }) {
             <div className="modal-title">Cambiar nombre de la cuadra</div>
             <div className="form-group">
               <label>Nuevo nombre</label>
-              <input type="text" value={nuevoNombre} onChange={e => setNuevoNombre(e.target.value)} autoFocus onKeyDown={e => e.key === 'Enter' && handleRenombrarGranja()} />
+              <input type="text" value={nuevoNombre} onChange={e => { setNuevoNombre(e.target.value); setErrorNombre('') }} autoFocus onKeyDown={e => e.key === 'Enter' && handleRenombrarGranja()} />
+              {errorNombre && <span className="form-error">{errorNombre}</span>}
             </div>
             <div className="modal-footer">
               <button className="btn btn-secondary" onClick={() => setShowRenombrar(false)}>Cancelar</button>
