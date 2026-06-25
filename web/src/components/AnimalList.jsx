@@ -40,6 +40,19 @@ function crearCSV(encabezados, filas) {
     .join('\r\n')
 }
 
+function aAnsi(texto) {
+  // Al abrir un CSV con doble clic, Excel ignora el BOM UTF-8 y lo lee como
+  // ANSI (Windows-1252), lo que rompe las tildes. Codificamos directamente en
+  // Windows-1252 (coincide con Latin-1 para los caracteres del español) para
+  // que se vean bien sin depender de que Excel respete el BOM.
+  const bytes = new Uint8Array(texto.length)
+  for (let i = 0; i < texto.length; i++) {
+    const code = texto.charCodeAt(i)
+    bytes[i] = code <= 0xff ? code : 0x3f
+  }
+  return bytes
+}
+
 function descargar(blob, nombre) {
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
@@ -56,20 +69,19 @@ async function exportarBackupCSV() {
     api.getAllGestaciones(),
   ])
 
-  const bom = '﻿'
   const zip = new JSZip()
-  zip.file('animales.csv', bom + crearCSV(
+  zip.file('animales.csv', aAnsi(crearCSV(
     ['Crotal', 'Nombre', 'Tipo', 'Raza', 'Sexo', 'Estado', 'Fecha Nacimiento', 'Peso (kg)', 'Partos', 'Madre Crotal', 'Madre Nombre', 'Padre Crotal', 'Padre Nombre', 'Notas'],
     animales.map(a => [a.crotal, a.nombre, a.tipo, a.raza, a.sexo, ESTADO_LABEL[a.estado] ?? a.estado, a.fecha_nacimiento, a.peso, a.partos, a.madre_crotal, a.madre_nombre, a.padre_crotal, a.padre_nombre, a.notas])
-  ))
-  zip.file('historial_medico.csv', bom + crearCSV(
+  )))
+  zip.file('historial_medico.csv', aAnsi(crearCSV(
     ['Crotal Animal', 'Nombre Animal', 'Tipo', 'Fecha Inicio', 'Fecha Fin', 'Descripción', 'Veterinario'],
     historial.map(h => [h.animal?.crotal, h.animal?.nombre, h.tipo, h.fecha_inicio, h.fecha_fin, h.descripcion, h.veterinario])
-  ))
-  zip.file('gestaciones.csv', bom + crearCSV(
+  )))
+  zip.file('gestaciones.csv', aAnsi(crearCSV(
     ['Crotal Animal', 'Nombre Animal', 'Fecha Inseminación', 'Fecha Parto Estimada', 'Fecha Parto Real', 'Toro / Semilla', 'Estado', 'Observaciones'],
     gestaciones.map(g => [g.animal?.crotal, g.animal?.nombre, g.fecha_inseminacion, g.fecha_parto_estimada, g.fecha_parto_real, g.nombre_toro, GESTACION_ESTADO_LABEL[g.estado] ?? g.estado, g.observaciones])
-  ))
+  )))
 
   const blob = await zip.generateAsync({ type: 'blob' })
   descargar(blob, `ganadapp-backup-${new Date().toISOString().slice(0, 10)}.zip`)
