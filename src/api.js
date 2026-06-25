@@ -272,12 +272,14 @@ export const api = {
 
   // ---- Granjas ----
   getGranjas: async () => {
-    const { data } = await supabase.from('granjas').select('*').order('nombre')
+    const userId = await getUserId()
+    const { data } = await supabase.from('granjas').select('*').eq('user_id', userId).order('nombre')
     return data || []
   },
 
   getGranja: async (id) => {
-    const { data } = await supabase.from('granjas').select('*').eq('id', id).single()
+    const userId = await getUserId()
+    const { data } = await supabase.from('granjas').select('*').eq('id', id).eq('user_id', userId).single()
     return data
   },
 
@@ -317,8 +319,9 @@ export const api = {
   },
 
   getAnimalesPorGranja: async () => {
+    const userId = await getUserId()
     const [{ data: granjas }, { data: animales }] = await Promise.all([
-      supabase.from('granjas').select('id, nombre').order('nombre'),
+      supabase.from('granjas').select('id, nombre').eq('user_id', userId).order('nombre'),
       supabase.from('animales').select('granja_id').not('granja_id', 'is', null),
     ])
     const countMap = {}
