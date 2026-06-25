@@ -130,7 +130,7 @@ function MainApp() {
       <main className="main-content">
         <Routes>
           <Route path="/" element={<Dashboard />} />
-          <Route path="/animales" element={<AnimalList />} />
+          <Route path="/animales" element={<AnimalList onGranjaChange={cargarGranjas} />} />
           <Route path="/animales/nuevo" element={<AnimalForm onGranjaChange={cargarGranjas} />} />
           <Route path="/animales/:id" element={<AnimalDetail />} />
           <Route path="/animales/:id/editar" element={<AnimalForm onGranjaChange={cargarGranjas} />} />

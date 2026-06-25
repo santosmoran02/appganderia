@@ -407,7 +407,7 @@ async function exportarBackupPDF() {
   )
 }
 
-export default function AnimalList() {
+export default function AnimalList({ onGranjaChange }) {
   const [animales, setAnimales] = useState([])
   const [razas, setRazas] = useState([])
   const [busqueda, setBusqueda] = useState('')
@@ -453,6 +453,7 @@ export default function AnimalList() {
       setResultadoRestauracion({ tipo: 'ok', resumen })
       cargar()
       api.getRazas().then(setRazas)
+      onGranjaChange?.()
     } catch (err) {
       setResultadoRestauracion({ tipo: 'error', mensaje: err.message || 'No se pudo leer el archivo. Asegúrate de subir un ZIP de copia de seguridad generado por GanadApp.' })
     } finally {
