@@ -150,7 +150,6 @@ export default function GranjaAnimalList({ onGranjaChange }) {
               <tr>
                 <th>Crotal</th>
                 <th>Nombre</th>
-                <th>Tipo</th>
                 <th>Estado</th>
                 <th>Raza</th>
                 <th>Sexo</th>
@@ -163,7 +162,6 @@ export default function GranjaAnimalList({ onGranjaChange }) {
                 <tr key={a.id} onClick={() => navigate(`/animales/${a.id}`)}>
                   <td><span className="crotal-cell">{a.crotal}</span></td>
                   <td>{a.nombre || <span style={{ color: 'var(--gray-400)' }}>—</span>}</td>
-                  <td>{a.tipo ? a.tipo.charAt(0).toUpperCase() + a.tipo.slice(1) : <span style={{ color: 'var(--gray-400)' }}>—</span>}</td>
                   <td><span className={`badge badge-${a.estado}`}>{ESTADO_LABEL[a.estado]}</span></td>
                   <td>{a.raza || <span style={{ color: 'var(--gray-400)' }}>—</span>}</td>
                   <td>

@@ -110,8 +110,8 @@ async function exportarBackupCSV() {
 
   const zip = new JSZip()
   zip.file('animales.csv', aAnsi(crearCSV(
-    ['Crotal', 'Nombre', 'Tipo', 'Raza', 'Sexo', 'Estado', 'Fecha Nacimiento', 'Peso (kg)', 'Partos', 'Madre Crotal', 'Madre Nombre', 'Padre Crotal', 'Padre Nombre', 'Notas', 'Granja', 'Estado Desde', 'Estado Hasta'],
-    animales.map(a => [a.crotal, a.nombre, a.tipo, a.raza, a.sexo, ESTADO_LABEL[a.estado] ?? a.estado, a.fecha_nacimiento, a.peso, a.partos, a.madre_crotal, a.madre_nombre, a.padre_crotal, a.padre_nombre, a.notas, granjaNombre(a.granja_id), a.estado_desde, a.estado_hasta])
+    ['Crotal', 'Nombre', 'Raza', 'Sexo', 'Estado', 'Fecha Nacimiento', 'Peso (kg)', 'Partos', 'Madre Crotal', 'Madre Nombre', 'Padre Crotal', 'Padre Nombre', 'Notas', 'Granja', 'Estado Desde', 'Estado Hasta'],
+    animales.map(a => [a.crotal, a.nombre, a.raza, a.sexo, ESTADO_LABEL[a.estado] ?? a.estado, a.fecha_nacimiento, a.peso, a.partos, a.madre_crotal, a.madre_nombre, a.padre_crotal, a.padre_nombre, a.notas, granjaNombre(a.granja_id), a.estado_desde, a.estado_hasta])
   )))
   zip.file('historial_medico.csv', aAnsi(crearCSV(
     ['Crotal Animal', 'Nombre Animal', 'Tipo', 'Fecha Inicio', 'Fecha Fin', 'Descripción', 'Veterinario'],
@@ -182,7 +182,6 @@ async function importarBackupCSV(file) {
       const payload = {
         crotal,
         nombre: (fila['Nombre'] || '').trim() || null,
-        tipo: (fila['Tipo'] || '').trim() || null,
         raza: (fila['Raza'] || '').trim() || null,
         sexo: (fila['Sexo'] || '').trim() || null,
         estado: resolverEtiqueta(fila['Estado'], ESTADO_LABEL_INVERSO, ESTADO_LABEL, 'en_produccion'),
@@ -346,10 +345,9 @@ async function exportarBackupPDF() {
   doc.text(`Animales (${animales.length})`, 14, 29)
   autoTable(doc, {
     startY: 33,
-    head: [['Crotal', 'Nombre', 'Tipo', 'Estado', 'Raza', 'Sexo', 'Edad', 'Peso', 'Partos', 'Madre', 'Padre', 'Notas']],
+    head: [['Crotal', 'Nombre', 'Estado', 'Raza', 'Sexo', 'Edad', 'Peso', 'Partos', 'Madre', 'Padre', 'Notas']],
     body: animales.map(a => [
       a.crotal ?? '', a.nombre ?? '',
-      a.tipo ? a.tipo.charAt(0).toUpperCase() + a.tipo.slice(1) : '',
       ESTADO_LABEL[a.estado] ?? a.estado ?? '',
       a.raza ?? '',
       a.sexo === 'macho' ? 'Macho' : a.sexo === 'hembra' ? 'Hembra' : '',
@@ -566,7 +564,6 @@ export default function AnimalList({ onGranjaChange }) {
               <tr>
                 <th>Crotal</th>
                 <th>Nombre</th>
-                <th>Tipo</th>
                 <th>Estado</th>
                 <th>Raza</th>
                 <th>Sexo</th>
@@ -579,7 +576,6 @@ export default function AnimalList({ onGranjaChange }) {
                 <tr key={a.id} onClick={() => navigate(`/animales/${a.id}`)}>
                   <td><span className="crotal-cell">{a.crotal}</span></td>
                   <td>{a.nombre || <span style={{ color: 'var(--gray-400)' }}>—</span>}</td>
-                  <td>{a.tipo ? a.tipo.charAt(0).toUpperCase() + a.tipo.slice(1) : <span style={{ color: 'var(--gray-400)' }}>—</span>}</td>
                   <td><span className={`badge badge-${a.estado}`}>{ESTADO_LABEL[a.estado]}</span></td>
                   <td>{a.raza || <span style={{ color: 'var(--gray-400)' }}>—</span>}</td>
                   <td>

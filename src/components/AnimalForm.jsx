@@ -5,7 +5,7 @@ import { useParams, useNavigate, useLocation, Link } from 'react-router-dom'
 const EMPTY = {
   crotal: '', nombre: '', raza: '', fecha_nacimiento: '',
   sexo: '', peso: '',
-  estado: 'en_produccion', estado_desde: '', estado_hasta: '', tipo: '',
+  estado: 'en_produccion', estado_desde: '', estado_hasta: '',
   partos: '',
   madre_crotal: '', madre_nombre: '',
   padre_crotal: '', padre_nombre: '',
@@ -56,7 +56,6 @@ export default function AnimalForm({ onGranjaChange }) {
           estado: a.estado || 'en_produccion',
           estado_desde: a.estado_desde || '',
           estado_hasta: a.estado_hasta || '',
-          tipo: a.tipo || '',
           partos: a.partos != null ? String(a.partos) : '',
           granja_id: a.granja_id || null,
           // Mostrar crotal/nombre del progenitor: del vinculado si existe, si no el externo
@@ -121,7 +120,6 @@ export default function AnimalForm({ onGranjaChange }) {
         estado: form.estado,
         estado_desde: form.estado_desde || null,
         estado_hasta: form.estado_hasta || null,
-        tipo: form.tipo || null,
         partos: form.partos !== '' ? Number(form.partos) : null,
         granja_id: granjaId || null,
         madre_id: resMadre.id,

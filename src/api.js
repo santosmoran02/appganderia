@@ -10,7 +10,7 @@ const ESTADOS_ACTIVOS = ['en_produccion', 'seca', 'parida', 'ordenar_aparte']
 
 const ANIMAL_COLUMNS = [
   'crotal', 'nombre', 'raza', 'fecha_nacimiento', 'sexo', 'peso',
-  'estado', 'estado_desde', 'estado_hasta', 'tipo', 'partos', 'granja_id',
+  'estado', 'estado_desde', 'estado_hasta', 'partos', 'granja_id',
   'madre_id', 'madre_crotal_ext', 'madre_nombre_ext',
   'padre_id', 'padre_crotal_ext', 'padre_nombre_ext',
   'notas',
