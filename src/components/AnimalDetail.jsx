@@ -332,14 +332,6 @@ export default function AnimalDetail() {
               </span>
             </div>
             <div className="info-item">
-              <span className="info-label">Tipo</span>
-              <span className={`info-value ${!animal.tipo ? 'empty' : ''}`}>
-                {animal.tipo
-                  ? animal.tipo.charAt(0).toUpperCase() + animal.tipo.slice(1)
-                  : 'No especificado'}
-              </span>
-            </div>
-            <div className="info-item">
               <span className="info-label">Partos</span>
               <span className={`info-value ${animal.partos == null ? 'empty' : ''}`}>
                 {animal.partos != null ? animal.partos : 'No registrado'}
