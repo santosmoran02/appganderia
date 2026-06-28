@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { useParams, useNavigate, useLocation, Link } from 'react-router-dom'
 import MedicalRecordForm from './MedicalRecordForm'
 import GestacionForm from './GestacionForm'
+import CeloForm from './CeloForm'
 
 const TIPO_LABEL = {
   vacuna: 'Vacuna', tratamiento: 'Tratamiento', revision: 'Revisión',
@@ -160,11 +161,14 @@ export default function AnimalDetail() {
   const [historial, setHistorial] = useState([])
   const [descendencia, setDescendencia] = useState([])
   const [gestaciones, setGestaciones] = useState([])
+  const [celos, setCelos] = useState([])
   const [tab, setTab] = useState('info')
   const [showMedForm, setShowMedForm] = useState(false)
   const [editingRegistro, setEditingRegistro] = useState(null)
   const [showGestacionForm, setShowGestacionForm] = useState(false)
   const [editingGestacion, setEditingGestacion] = useState(null)
+  const [showCeloForm, setShowCeloForm] = useState(false)
+  const [editingCelo, setEditingCelo] = useState(null)
   const [savingEstado, setSavingEstado] = useState(false)
   const [estadoDesde, setEstadoDesde] = useState('')
   const [estadoHasta, setEstadoHasta] = useState('')
@@ -178,6 +182,7 @@ export default function AnimalDetail() {
     api.getHistorialMedico(Number(id)).then(setHistorial)
     api.getDescendencia(Number(id)).then(setDescendencia)
     api.getGestaciones(Number(id)).then(setGestaciones)
+    api.getCelos(Number(id)).then(setCelos)
   }
 
   useEffect(() => { cargar() }, [id, location.key])
@@ -202,6 +207,11 @@ export default function AnimalDetail() {
   const handleDeleteGestacion = async (gId) => {
     await api.deleteGestacion(gId)
     setGestaciones(g => g.filter(x => x.id !== gId))
+  }
+
+  const handleDeleteCelo = async (cId) => {
+    await api.deleteCelo(cId)
+    setCelos(c => c.filter(x => x.id !== cId))
   }
 
   const handleCambiarEstado = async (nuevoEstado) => {
@@ -458,14 +468,24 @@ export default function AnimalDetail() {
 
       {tab === 'inseminacion' && (
         <div>
+          {/* Cabecera con los dos botones */}
           <div className="historial-header">
-            <div style={{ fontWeight: 600, color: 'var(--gray-700)' }}>{gestaciones.length} registro{gestaciones.length !== 1 ? 's' : ''}</div>
-            <button className="btn btn-primary" onClick={() => { setEditingGestacion(null); setShowGestacionForm(true) }}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-              Registrar inseminación
-            </button>
+            <div style={{ fontWeight: 600, color: 'var(--gray-700)' }}>
+              {gestaciones.length} inseminación{gestaciones.length !== 1 ? 'es' : ''} · {celos.length} celo{celos.length !== 1 ? 's' : ''}
+            </div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button className="btn btn-secondary" onClick={() => { setEditingCelo(null); setShowCeloForm(true) }}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Registrar celo
+              </button>
+              <button className="btn btn-primary" onClick={() => { setEditingGestacion(null); setShowGestacionForm(true) }}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Registrar inseminación
+              </button>
+            </div>
           </div>
 
+          {/* Inseminaciones */}
           {gestaciones.length === 0 ? (
             <div className="empty-state">
               <div className="empty-state-icon">💉</div>
@@ -481,8 +501,6 @@ export default function AnimalDetail() {
                   <div key={g.id} className="card" style={{ padding: 16 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
                       <div style={{ flex: 1 }}>
-
-                        {/* Fila superior: estado + toro */}
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
                           <span style={{ display: 'inline-flex', alignItems: 'center', padding: '3px 10px', borderRadius: 99, fontSize: 12, fontWeight: 700, background: badge.bg, color: badge.color }}>
                             {GESTACION_ESTADO_LABEL[g.estado]}
@@ -494,8 +512,7 @@ export default function AnimalDetail() {
                           )}
                         </div>
 
-                        {/* Datos de fechas */}
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 12, marginBottom: (g.fecha_celo || g.observaciones) ? 12 : 0 }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 12, marginBottom: g.observaciones ? 12 : 0 }}>
                           <div className="info-item">
                             <span className="info-label">Inseminación</span>
                             <span className="info-value">{formatFecha(g.fecha_inseminacion)}</span>
@@ -528,38 +545,12 @@ export default function AnimalDetail() {
                             <div className="info-item">
                               <span className="info-label">Para el parto</span>
                               <span className="info-value" style={{ color: diasParto <= 14 ? 'var(--red-500)' : diasParto <= 30 ? 'var(--amber-500)' : 'var(--gray-700)', fontWeight: 600 }}>
-                                {diasParto < 0
-                                  ? `Hace ${Math.abs(diasParto)} días`
-                                  : diasParto === 0
-                                  ? '¡Hoy!'
-                                  : `${diasParto} días`}
+                                {diasParto < 0 ? `Hace ${Math.abs(diasParto)} días` : diasParto === 0 ? '¡Hoy!' : `${diasParto} días`}
                               </span>
                             </div>
                           )}
                         </div>
 
-                        {/* Celos */}
-                        {(g.fecha_celo || g.fecha_proximo_celo) && (
-                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 12, marginBottom: g.observaciones ? 12 : 0, background: '#fdf2f8', borderRadius: 8, padding: '10px 12px' }}>
-                            {g.fecha_celo && (
-                              <div className="info-item">
-                                <span className="info-label">Celo detectado</span>
-                                <span className="info-value">🔴 {formatFecha(g.fecha_celo)}</span>
-                              </div>
-                            )}
-                            {g.fecha_proximo_celo && (
-                              <div className="info-item">
-                                <span className="info-label" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                                  Próximo celo
-                                  <span style={{ fontSize: 10, fontWeight: 600, background: '#fef3c7', color: '#92400e', padding: '1px 5px', borderRadius: 99 }}>📅 calendario</span>
-                                </span>
-                                <span className="info-value" style={{ color: '#9d174d', fontWeight: 600 }}>{formatFecha(g.fecha_proximo_celo)}</span>
-                              </div>
-                            )}
-                          </div>
-                        )}
-
-                        {/* Observaciones */}
                         {g.observaciones && (
                           <div style={{ background: 'var(--gray-50)', borderRadius: 6, padding: '10px 12px', borderLeft: '3px solid var(--gray-300)' }}>
                             <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--gray-400)', marginBottom: 4 }}>Observaciones</div>
@@ -568,7 +559,6 @@ export default function AnimalDetail() {
                         )}
                       </div>
 
-                      {/* Acciones */}
                       <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
                         <button className="btn-icon" title="Editar" onClick={() => { setEditingGestacion(g); setShowGestacionForm(true) }}>
                           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
@@ -583,6 +573,57 @@ export default function AnimalDetail() {
               })}
             </div>
           )}
+
+          {/* Sección de celos */}
+          <div style={{ marginTop: 28 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--gray-400)', marginBottom: 12 }}>
+              Celos registrados
+            </div>
+            {celos.length === 0 ? (
+              <div className="empty-state" style={{ padding: '24px 0' }}>
+                <div className="empty-state-icon">🔴</div>
+                <div className="empty-state-text">Sin celos registrados</div>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {celos.map(c => (
+                  <div key={c.id} className="card" style={{ padding: 14 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
+                      <div style={{ flex: 1, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 12 }}>
+                        <div className="info-item">
+                          <span className="info-label">Celo detectado</span>
+                          <span className="info-value">🔴 {formatFecha(c.fecha_celo)}</span>
+                        </div>
+                        {c.fecha_proximo_celo && (
+                          <div className="info-item">
+                            <span className="info-label" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                              Próximo celo estimado
+                              <span style={{ fontSize: 10, fontWeight: 600, background: '#fef3c7', color: '#92400e', padding: '1px 5px', borderRadius: 99 }}>📅 calendario</span>
+                            </span>
+                            <span className="info-value" style={{ color: '#9d174d', fontWeight: 600 }}>{formatFecha(c.fecha_proximo_celo)}</span>
+                          </div>
+                        )}
+                        {c.observaciones && (
+                          <div className="info-item" style={{ gridColumn: '1 / -1' }}>
+                            <span className="info-label">Observaciones</span>
+                            <span className="info-value" style={{ whiteSpace: 'pre-wrap' }}>{c.observaciones}</span>
+                          </div>
+                        )}
+                      </div>
+                      <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+                        <button className="btn-icon" title="Editar" onClick={() => { setEditingCelo(c); setShowCeloForm(true) }}>
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                        </button>
+                        <button className="btn-icon" title="Eliminar" style={{ color: 'var(--red-500)' }} onClick={() => handleDeleteCelo(c.id)}>
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       )}
 
@@ -839,6 +880,23 @@ export default function AnimalDetail() {
             )
             setShowGestacionForm(false)
             setEditingGestacion(null)
+          }}
+        />
+      )}
+
+      {showCeloForm && (
+        <CeloForm
+          animalId={Number(id)}
+          celo={editingCelo}
+          onClose={() => { setShowCeloForm(false); setEditingCelo(null) }}
+          onSaved={(c) => {
+            setCelos(prev =>
+              editingCelo
+                ? prev.map(x => x.id === c.id ? c : x)
+                : [c, ...prev]
+            )
+            setShowCeloForm(false)
+            setEditingCelo(null)
           }}
         />
       )}

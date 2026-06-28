@@ -262,7 +262,7 @@ export const api = {
 
   getAllCelosCalendario: async () => {
     const { data } = await supabase
-      .from('gestaciones')
+      .from('celos')
       .select(`*, animal:animal_id (crotal, nombre, granja_id)`)
       .not('fecha_proximo_celo', 'is', null)
       .order('fecha_proximo_celo', { ascending: true })
@@ -272,6 +272,42 @@ export const api = {
       animal_nombre: g.animal?.nombre,
       granja_id: g.animal?.granja_id,
     }))
+  },
+
+  // ---- Celos ----
+  getCelos: async (animalId) => {
+    const { data } = await supabase
+      .from('celos')
+      .select('*')
+      .eq('animal_id', animalId)
+      .order('fecha_celo', { ascending: false })
+    return data || []
+  },
+
+  createCelo: async (data) => {
+    const userId = await getUserId()
+    const { data: result, error } = await supabase
+      .from('celos')
+      .insert({ ...data, user_id: userId })
+      .select()
+      .single()
+    if (error) throw error
+    return result
+  },
+
+  updateCelo: async (id, data) => {
+    const { data: result, error } = await supabase
+      .from('celos')
+      .update(data)
+      .eq('id', id)
+      .select()
+      .single()
+    if (error) throw error
+    return result
+  },
+
+  deleteCelo: async (id) => {
+    await supabase.from('celos').delete().eq('id', id)
   },
 
   getAnimalesConEstadoHasta: async () => {
