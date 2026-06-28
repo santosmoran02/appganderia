@@ -2,12 +2,13 @@ import { api } from '../api'
 import { useEffect, useState, useCallback } from 'react'
 import { useNavigate, useParams, Link } from 'react-router-dom'
 
-const ESTADOS = ['', 'en_produccion', 'seca', 'parida', 'ordenar_aparte']
+const ESTADOS = ['', 'en_produccion', 'seca', 'parida', 'ordenar_aparte', 'otro']
 const ESTADO_LABEL = {
   en_produccion: 'En producción',
   seca: 'Seca',
   parida: 'Parida',
   ordenar_aparte: 'Ordeñar aparte',
+  otro: 'Otro',
   vendido: 'Vendido',
   fallecido: 'Fallecido',
 }

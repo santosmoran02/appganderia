@@ -10,12 +10,12 @@ const TIPO_LABEL = {
 }
 
 const ESTADO_LABEL = {
-  en_produccion: 'En producción', seca: 'Seca', parida: 'Parida', ordenar_aparte: 'Ordeñar aparte',
+  en_produccion: 'En producción', seca: 'Seca', parida: 'Parida', ordenar_aparte: 'Ordeñar aparte', otro: 'Otro',
 }
 
 const ESTADO_LABEL_COMPLETO = {
   en_produccion: 'En producción', seca: 'Seca', parida: 'Parida',
-  ordenar_aparte: 'Ordeñar aparte', vendido: 'Vendido', fallecido: 'Fallecido',
+  ordenar_aparte: 'Ordeñar aparte', otro: 'Otro', vendido: 'Vendido', fallecido: 'Fallecido',
 }
 
 const ESTADOS_PRODUCCION = ['en_produccion', 'seca', 'parida', 'ordenar_aparte']

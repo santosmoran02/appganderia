@@ -5,12 +5,13 @@ import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
 import JSZip from 'jszip'
 
-const ESTADOS = ['', 'en_produccion', 'seca', 'parida', 'ordenar_aparte']
+const ESTADOS = ['', 'en_produccion', 'seca', 'parida', 'ordenar_aparte', 'otro']
 const ESTADO_LABEL = {
   en_produccion: 'En producción',
   seca: 'Seca',
   parida: 'Parida',
   ordenar_aparte: 'Ordeñar aparte',
+  otro: 'Otro',
   vendido: 'Vendido',
   fallecido: 'Fallecido',
 }

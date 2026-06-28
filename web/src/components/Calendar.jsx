@@ -8,7 +8,7 @@ const DIAS_SEMANA = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']
 
 const ESTADO_LABEL_CAL = {
   en_produccion: 'En producción', seca: 'Seca', parida: 'Parida',
-  ordenar_aparte: 'Ordeñar aparte', vendido: 'Vendido', fallecido: 'Fallecido',
+  ordenar_aparte: 'Ordeñar aparte', otro: 'Otro', vendido: 'Vendido', fallecido: 'Fallecido',
 }
 
 function isoFecha(date) {

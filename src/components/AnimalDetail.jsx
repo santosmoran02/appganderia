@@ -14,6 +14,7 @@ const ESTADO_LABEL = {
   seca: 'Seca',
   parida: 'Parida',
   ordenar_aparte: 'Ordeñar aparte',
+  otro: 'Otro',
 }
 
 const ESTADO_LABEL_COMPLETO = {
@@ -21,6 +22,7 @@ const ESTADO_LABEL_COMPLETO = {
   seca: 'Seca',
   parida: 'Parida',
   ordenar_aparte: 'Ordeñar aparte',
+  otro: 'Otro',
   vendido: 'Vendido',
   fallecido: 'Fallecido',
 }

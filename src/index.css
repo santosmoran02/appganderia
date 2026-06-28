@@ -407,6 +407,7 @@ select.filter-select:focus { border-color: var(--green-600); }
 .badge-seca { background: var(--gray-200); color: var(--gray-700); }
 .badge-parida { background: var(--blue-100); color: #1e40af; }
 .badge-ordenar_aparte { background: #fef3c7; color: #92400e; }
+.badge-otro { background: #f3e8ff; color: #7e22ce; }
 .badge-vendido { background: var(--yellow-100); color: #92400e; }
 .badge-fallecido { background: var(--red-100); color: #991b1b; }
 .badge-macho { background: var(--blue-100); color: #1e40af; }
@@ -883,6 +884,7 @@ textarea { resize: vertical; min-height: 80px; }
 .estado-opcion--activo.estado-opcion--seca { border-color: var(--gray-500); background: var(--gray-100); color: var(--gray-800); }
 .estado-opcion--activo.estado-opcion--parida { border-color: #3b82f6; background: var(--blue-100); color: #1e40af; }
 .estado-opcion--activo.estado-opcion--ordenar_aparte { border-color: #d97706; background: #fef3c7; color: #92400e; }
+.estado-opcion--activo.estado-opcion--otro { border-color: #9333ea; background: #f3e8ff; color: #7e22ce; }
 .estado-opcion--activo.estado-opcion--vendido { border-color: #ca8a04; background: var(--yellow-100); color: #92400e; }
 .estado-opcion--activo.estado-opcion--fallecido { border-color: var(--red-500); background: var(--red-100); color: #991b1b; }
 
