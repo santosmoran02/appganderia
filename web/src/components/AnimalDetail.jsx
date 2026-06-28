@@ -346,7 +346,7 @@ export default function AnimalDetail() {
                           <span style={{ display: 'inline-flex', alignItems: 'center', padding: '3px 10px', borderRadius: 99, fontSize: 12, fontWeight: 700, background: badge.bg, color: badge.color }}>{GESTACION_ESTADO_LABEL[g.estado]}</span>
                           {g.nombre_toro && <span style={{ fontSize: 13, color: 'var(--gray-600)' }}>🧬 Semilla: <strong>{g.nombre_toro}</strong></span>}
                         </div>
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 12, marginBottom: g.observaciones ? 12 : 0 }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 12, marginBottom: (g.fecha_celo || g.observaciones) ? 12 : 0 }}>
                           <div className="info-item"><span className="info-label">Inseminación</span><span className="info-value">{formatFecha(g.fecha_inseminacion)}</span></div>
                           {g.fecha_secado_estimada && <div className="info-item"><span className="info-label">Secado estimado</span><span className="info-value">{formatFecha(g.fecha_secado_estimada)}</span></div>}
                           {g.fecha_parto_estimada && <div className="info-item"><span className="info-label">Parto estimado</span><span className="info-value">{formatFecha(g.fecha_parto_estimada)}</span></div>}
@@ -361,6 +361,27 @@ export default function AnimalDetail() {
                             </div>
                           )}
                         </div>
+
+                        {(g.fecha_celo || g.fecha_proximo_celo) && (
+                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 12, marginBottom: g.observaciones ? 12 : 0, background: '#fdf2f8', borderRadius: 8, padding: '10px 12px' }}>
+                            {g.fecha_celo && (
+                              <div className="info-item">
+                                <span className="info-label">Celo detectado</span>
+                                <span className="info-value">🔴 {formatFecha(g.fecha_celo)}</span>
+                              </div>
+                            )}
+                            {g.fecha_proximo_celo && (
+                              <div className="info-item">
+                                <span className="info-label" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                                  Próximo celo
+                                  <span style={{ fontSize: 10, fontWeight: 600, background: '#fef3c7', color: '#92400e', padding: '1px 5px', borderRadius: 99 }}>📅 calendario</span>
+                                </span>
+                                <span className="info-value" style={{ color: '#9d174d', fontWeight: 600 }}>{formatFecha(g.fecha_proximo_celo)}</span>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
                         {g.observaciones && (
                           <div style={{ background: 'var(--gray-50)', borderRadius: 6, padding: '10px 12px', borderLeft: '3px solid var(--gray-300)' }}>
                             <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--gray-400)', marginBottom: 4 }}>Observaciones</div>

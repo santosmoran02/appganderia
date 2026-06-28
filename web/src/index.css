@@ -1234,6 +1234,17 @@ textarea { resize: vertical; min-height: 80px; }
   background: #2563eb;
 }
 
+.cal-mes-badge--celo {
+  background: #db2777;
+}
+
+.cal-evento--celo {
+  background: #fce7f3;
+  border-color: #db2777;
+}
+.cal-evento--celo:hover { background: #fbcfe8; }
+.cal-evento--celo .cal-evento-label { color: #9d174d; }
+
 .cal-mes-evento-icon { font-size: 11px; flex-shrink: 0; }
 
 .cal-leyenda-item {
@@ -1254,6 +1265,7 @@ textarea { resize: vertical; min-height: 80px; }
 .cal-leyenda-dot--parto { background: var(--green-600); }
 .cal-leyenda-dot--secado { background: #2563eb; }
 .cal-leyenda-dot--estado { background: #d97706; }
+.cal-leyenda-dot--celo { background: #db2777; }
 
 /* Popup detalle parto */
 .cal-popup-overlay {

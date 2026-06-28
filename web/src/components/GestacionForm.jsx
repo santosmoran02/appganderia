@@ -3,6 +3,8 @@ import { api } from '../api'
 
 const DIAS_GESTACION = 283
 const MESES_SECADO = 7
+// Ciclo estral bovino: ~21 días
+const DIAS_CICLO_CELO = 21
 
 function sumarDias(fechaStr, dias) {
   const d = new Date(fechaStr + 'T00:00:00')
@@ -24,6 +26,8 @@ const EMPTY = {
   nombre_toro: '',
   estado: 'en_curso',
   observaciones: '',
+  fecha_celo: '',
+  fecha_proximo_celo: '',
 }
 
 const ESTADO_LABEL = {
@@ -45,6 +49,8 @@ export default function GestacionForm({ animalId, gestacion, onClose, onSaved })
           nombre_toro: gestacion.nombre_toro || '',
           estado: gestacion.estado || 'en_curso',
           observaciones: gestacion.observaciones || '',
+          fecha_celo: gestacion.fecha_celo || '',
+          fecha_proximo_celo: gestacion.fecha_proximo_celo || '',
         }
       : EMPTY
   )
@@ -57,6 +63,10 @@ export default function GestacionForm({ animalId, gestacion, onClose, onSaved })
       if (field === 'fecha_inseminacion' && value) {
         next.fecha_secado_estimada = sumarMeses(value, MESES_SECADO)
         next.fecha_parto_estimada = sumarDias(value, DIAS_GESTACION)
+      }
+      // Auto-calcular próximo celo al cambiar fecha de celo
+      if (field === 'fecha_celo') {
+        next.fecha_proximo_celo = value ? sumarDias(value, DIAS_CICLO_CELO) : ''
       }
       return next
     })
@@ -84,6 +94,8 @@ export default function GestacionForm({ animalId, gestacion, onClose, onSaved })
       nombre_toro: form.nombre_toro.trim() || null,
       estado: form.estado,
       observaciones: form.observaciones.trim() || null,
+      fecha_celo: form.fecha_celo || null,
+      fecha_proximo_celo: form.fecha_proximo_celo || null,
     }
 
     try {
@@ -140,6 +152,41 @@ export default function GestacionForm({ animalId, gestacion, onClose, onSaved })
                   <option key={v} value={v}>{l}</option>
                 ))}
               </select>
+            </div>
+          </div>
+
+          <div style={{ borderTop: '1px solid var(--gray-200)', paddingTop: 14, marginBottom: 14 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--gray-400)', marginBottom: 12 }}>
+              Ciclo de celos
+            </div>
+            <div className="form-row">
+              <div className="form-group">
+                <label>Fecha del celo</label>
+                <input
+                  type="date"
+                  value={form.fecha_celo}
+                  onChange={e => set('fecha_celo', e.target.value)}
+                />
+                <span style={{ fontSize: 11, color: 'var(--gray-400)', marginTop: 3 }}>
+                  Fecha en que se detectó el celo
+                </span>
+              </div>
+              <div className="form-group">
+                <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  Próximo celo estimado
+                  <span style={{ fontSize: 10, fontWeight: 600, background: '#fef3c7', color: '#92400e', padding: '1px 6px', borderRadius: 99 }}>
+                    📅 calendario
+                  </span>
+                </label>
+                <input
+                  type="date"
+                  value={form.fecha_proximo_celo}
+                  onChange={e => set('fecha_proximo_celo', e.target.value)}
+                />
+                <span style={{ fontSize: 11, color: 'var(--gray-400)', marginTop: 3 }}>
+                  Se calcula automáticamente (+21 días)
+                </span>
+              </div>
             </div>
           </div>
 

@@ -260,6 +260,20 @@ export const api = {
     }))
   },
 
+  getAllCelosCalendario: async () => {
+    const { data } = await supabase
+      .from('gestaciones')
+      .select(`*, animal:animal_id (crotal, nombre, granja_id)`)
+      .not('fecha_proximo_celo', 'is', null)
+      .order('fecha_proximo_celo', { ascending: true })
+    return (data || []).map(g => ({
+      ...g,
+      crotal: g.animal?.crotal,
+      animal_nombre: g.animal?.nombre,
+      granja_id: g.animal?.granja_id,
+    }))
+  },
+
   getAnimalesConEstadoHasta: async () => {
     const { data } = await supabase
       .from('animales')

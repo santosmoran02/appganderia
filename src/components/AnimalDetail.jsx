@@ -501,7 +501,7 @@ export default function AnimalDetail() {
                         </div>
 
                         {/* Datos de fechas */}
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 12, marginBottom: g.observaciones ? 12 : 0 }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 12, marginBottom: (g.fecha_celo || g.observaciones) ? 12 : 0 }}>
                           <div className="info-item">
                             <span className="info-label">Inseminación</span>
                             <span className="info-value">{formatFecha(g.fecha_inseminacion)}</span>
@@ -543,6 +543,27 @@ export default function AnimalDetail() {
                             </div>
                           )}
                         </div>
+
+                        {/* Celos */}
+                        {(g.fecha_celo || g.fecha_proximo_celo) && (
+                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 12, marginBottom: g.observaciones ? 12 : 0, background: '#fdf2f8', borderRadius: 8, padding: '10px 12px' }}>
+                            {g.fecha_celo && (
+                              <div className="info-item">
+                                <span className="info-label">Celo detectado</span>
+                                <span className="info-value">🔴 {formatFecha(g.fecha_celo)}</span>
+                              </div>
+                            )}
+                            {g.fecha_proximo_celo && (
+                              <div className="info-item">
+                                <span className="info-label" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                                  Próximo celo
+                                  <span style={{ fontSize: 10, fontWeight: 600, background: '#fef3c7', color: '#92400e', padding: '1px 5px', borderRadius: 99 }}>📅 calendario</span>
+                                </span>
+                                <span className="info-value" style={{ color: '#9d174d', fontWeight: 600 }}>{formatFecha(g.fecha_proximo_celo)}</span>
+                              </div>
+                            )}
+                          </div>
+                        )}
 
                         {/* Observaciones */}
                         {g.observaciones && (
