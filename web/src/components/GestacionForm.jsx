@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { api } from '../api'
 
 const DIAS_GESTACION = 283
@@ -22,6 +22,7 @@ const EMPTY = {
   fecha_parto_estimada: '',
   fecha_parto_real: '',
   nombre_toro: '',
+  toro: '',
   estado: 'en_curso',
   observaciones: '',
 }
@@ -29,6 +30,7 @@ const EMPTY = {
 const ESTADO_LABEL = {
   en_curso: 'En curso',
   parto_exitoso: 'Parto exitoso',
+  nacido_muerto: 'Nacido muerto',
   aborto: 'Aborto',
   reabsorcion: 'Reabsorción',
 }
@@ -43,6 +45,7 @@ export default function GestacionForm({ animalId, gestacion, onClose, onSaved })
           fecha_parto_estimada: gestacion.fecha_parto_estimada || '',
           fecha_parto_real: gestacion.fecha_parto_real || '',
           nombre_toro: gestacion.nombre_toro || '',
+          toro: gestacion.toro || '',
           estado: gestacion.estado || 'en_curso',
           observaciones: gestacion.observaciones || '',
         }
@@ -50,6 +53,14 @@ export default function GestacionForm({ animalId, gestacion, onClose, onSaved })
   )
   const [errors, setErrors] = useState({})
   const [saving, setSaving] = useState(false)
+  const [sugerenciasToros, setSugerenciasToros] = useState([])
+
+  useEffect(() => {
+    Promise.all([api.getAnimalesParaSelector(), api.getNombresToros()]).then(([animales, nombres]) => {
+      const machos = animales.filter(a => a.sexo === 'macho').map(a => a.nombre || a.crotal)
+      setSugerenciasToros([...new Set([...machos, ...nombres].filter(Boolean))])
+    })
+  }, [])
 
   const set = (field, value) => {
     setForm(f => {
@@ -82,6 +93,7 @@ export default function GestacionForm({ animalId, gestacion, onClose, onSaved })
       fecha_parto_estimada: form.fecha_parto_estimada || null,
       fecha_parto_real: form.fecha_parto_real || null,
       nombre_toro: form.nombre_toro.trim() || null,
+      toro: form.toro.trim() || null,
       estado: form.estado,
       observaciones: form.observaciones.trim() || null,
     }
@@ -130,8 +142,15 @@ export default function GestacionForm({ animalId, gestacion, onClose, onSaved })
 
           <div className="form-row" style={{ marginBottom: 14 }}>
             <div className="form-group">
-              <label>Tipo de semilla / toro</label>
-              <input type="text" value={form.nombre_toro} onChange={e => set('nombre_toro', e.target.value)} placeholder="Ej: Semilla nº 45, Bravo III..." />
+              <label>Semilla</label>
+              <input type="text" value={form.nombre_toro} onChange={e => set('nombre_toro', e.target.value)} placeholder="Ej: Semilla nº 45, Frisón Premium..." />
+            </div>
+            <div className="form-group">
+              <label>Toro</label>
+              <input type="text" list="lista-toros" value={form.toro} onChange={e => set('toro', e.target.value)} placeholder="Ej: Bravo III" />
+              <datalist id="lista-toros">
+                {sugerenciasToros.map(t => <option key={t} value={t} />)}
+              </datalist>
             </div>
             <div className="form-group">
               <label>Estado</label>

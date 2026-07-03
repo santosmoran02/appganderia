@@ -29,6 +29,7 @@ function calcularEdad(fechaNac) {
 const GESTACION_ESTADO_LABEL = {
   en_curso: 'En curso',
   parto_exitoso: 'Parto exitoso',
+  nacido_muerto: 'Nacido muerto',
   aborto: 'Aborto',
   reabsorcion: 'Reabsorción',
 }
@@ -119,8 +120,8 @@ async function exportarBackupCSV() {
     historial.map(h => [h.animal?.crotal, h.animal?.nombre, h.tipo, h.fecha_inicio, h.fecha_fin, h.descripcion, h.veterinario])
   )))
   zip.file('gestaciones.csv', aAnsi(crearCSV(
-    ['Crotal Animal', 'Nombre Animal', 'Fecha Inseminación', 'Fecha Parto Estimada', 'Fecha Parto Real', 'Toro / Semilla', 'Estado', 'Observaciones', 'Fecha Secado Estimada'],
-    gestaciones.map(g => [g.animal?.crotal, g.animal?.nombre, g.fecha_inseminacion, g.fecha_parto_estimada, g.fecha_parto_real, g.nombre_toro, GESTACION_ESTADO_LABEL[g.estado] ?? g.estado, g.observaciones, g.fecha_secado_estimada])
+    ['Crotal Animal', 'Nombre Animal', 'Fecha Inseminación', 'Fecha Parto Estimada', 'Fecha Parto Real', 'Semilla', 'Toro', 'Estado', 'Observaciones', 'Fecha Secado Estimada'],
+    gestaciones.map(g => [g.animal?.crotal, g.animal?.nombre, g.fecha_inseminacion, g.fecha_parto_estimada, g.fecha_parto_real, g.nombre_toro, g.toro, GESTACION_ESTADO_LABEL[g.estado] ?? g.estado, g.observaciones, g.fecha_secado_estimada])
   )))
   zip.file('celos.csv', aAnsi(crearCSV(
     ['Crotal Animal', 'Nombre Animal', 'Fecha Celo', 'Fecha Próximo Celo', 'Observaciones'],
@@ -288,7 +289,7 @@ async function importarBackupCSV(file) {
   }
 
   // ---- Gestaciones: se añaden como nuevas, deduplicando por contenido ----
-  const claveGestacion = g => `${g.fecha_inseminacion || ''}|${g.estado || ''}|${(g.nombre_toro || '').trim()}`
+  const claveGestacion = g => `${g.fecha_inseminacion || ''}|${g.estado || ''}|${(g.nombre_toro || '').trim()}|${(g.toro || '').trim()}`
   const gestacionesVistas = new Set(gestacionesExistentes.map(g => `${g.animal_id}|${claveGestacion(g)}`))
   let gestacionesCreadas = 0, gestacionesOmitidas = 0
 
@@ -305,7 +306,8 @@ async function importarBackupCSV(file) {
       fecha_secado_estimada: (fila['Fecha Secado Estimada'] || '').trim() || null,
       fecha_parto_estimada: (fila['Fecha Parto Estimada'] || '').trim() || null,
       fecha_parto_real: (fila['Fecha Parto Real'] || '').trim() || null,
-      nombre_toro: (fila['Toro / Semilla'] || '').trim() || null,
+      nombre_toro: (fila['Semilla'] || fila['Toro / Semilla'] || '').trim() || null,
+      toro: (fila['Toro'] || '').trim() || null,
       estado: resolverEtiqueta(fila['Estado'], GESTACION_ESTADO_LABEL_INVERSO, GESTACION_ESTADO_LABEL, 'en_curso'),
       observaciones: (fila['Observaciones'] || '').trim() || null,
     }
@@ -429,17 +431,18 @@ async function exportarBackupPDF() {
   doc.text(`Gestaciones (${gestaciones.length} registros)`, 14, 14)
   autoTable(doc, {
     startY: 18,
-    head: [['Crotal', 'Nombre Animal', 'F. Inseminación', 'F. Parto Estimada', 'F. Parto Real', 'Toro / Semilla', 'Estado', 'Observaciones']],
+    head: [['Crotal', 'Nombre Animal', 'F. Inseminación', 'F. Parto Estimada', 'F. Parto Real', 'Semilla', 'Toro', 'Estado', 'Observaciones']],
     body: gestaciones.map(g => [
       g.animal?.crotal ?? '', g.animal?.nombre ?? '',
       g.fecha_inseminacion ?? '', g.fecha_parto_estimada ?? '', g.fecha_parto_real ?? '',
       g.nombre_toro ?? '',
+      g.toro ?? '',
       GESTACION_ESTADO_LABEL[g.estado] ?? g.estado ?? '',
       g.observaciones ?? '',
     ]),
     styles: tableStyle,
     headStyles: headStyle,
-    columnStyles: { 7: { cellWidth: 60 } },
+    columnStyles: { 8: { cellWidth: 60 } },
   })
 
   // Sección 4: Celos

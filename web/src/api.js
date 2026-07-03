@@ -155,6 +155,15 @@ export const api = {
     return data || []
   },
 
+  getNombresToros: async () => {
+    const { data } = await supabase
+      .from('gestaciones')
+      .select('toro')
+      .not('toro', 'is', null)
+      .neq('toro', '')
+    return [...new Set(data?.map(r => r.toro).filter(Boolean))]
+  },
+
   // ---- Historial médico ----
   getAllHistorialMedico: async () => {
     const { data } = await supabase

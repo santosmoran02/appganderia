@@ -33,6 +33,7 @@ const ESTADOS_PRODUCCION = ['en_produccion', 'seca', 'parida', 'ordenar_aparte']
 const GESTACION_ESTADO_LABEL = {
   en_curso: 'En curso',
   parto_exitoso: 'Parto exitoso',
+  nacido_muerto: 'Nacido muerto',
   aborto: 'Aborto',
   reabsorcion: 'Reabsorción',
 }
@@ -40,6 +41,7 @@ const GESTACION_ESTADO_LABEL = {
 const GESTACION_ESTADO_BADGE = {
   en_curso: { bg: '#dbeafe', color: '#1e40af' },
   parto_exitoso: { bg: '#dcfce7', color: '#15803d' },
+  nacido_muerto: { bg: '#e5e7eb', color: '#1f2937' },
   aborto: { bg: '#fee2e2', color: '#991b1b' },
   reabsorcion: { bg: '#fef9c3', color: '#92400e' },
 }
@@ -510,6 +512,11 @@ export default function AnimalDetail() {
                               🧬 Semilla: <strong>{g.nombre_toro}</strong>
                             </span>
                           )}
+                          {g.toro && (
+                            <span style={{ fontSize: 13, color: 'var(--gray-600)' }}>
+                              🐂 Toro: <strong>{g.toro}</strong>
+                            </span>
+                          )}
                         </div>
 
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 12, marginBottom: g.observaciones ? 12 : 0 }}>
@@ -873,6 +880,7 @@ export default function AnimalDetail() {
           gestacion={editingGestacion}
           onClose={() => { setShowGestacionForm(false); setEditingGestacion(null) }}
           onSaved={(g) => {
+            const eraExitosoAntes = editingGestacion?.estado === 'parto_exitoso'
             setGestaciones(prev =>
               editingGestacion
                 ? prev.map(x => x.id === g.id ? g : x)
@@ -880,6 +888,18 @@ export default function AnimalDetail() {
             )
             setShowGestacionForm(false)
             setEditingGestacion(null)
+            if (g.estado === 'parto_exitoso' && !eraExitosoAntes) {
+              navigate('/animales/nuevo', {
+                state: {
+                  nacimiento: {
+                    madre: { id: animal.id, crotal: animal.crotal, nombre: animal.nombre },
+                    padreNombre: g.toro || '',
+                    fechaNacimiento: g.fecha_parto_real || g.fecha_parto_estimada || '',
+                    granjaId: animal.granja_id || null,
+                  }
+                }
+              })
+            }
           }}
         />
       )}

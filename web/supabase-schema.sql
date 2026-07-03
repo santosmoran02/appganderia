@@ -73,14 +73,28 @@ CREATE TABLE IF NOT EXISTS gestaciones (
   fecha_secado_estimada TEXT,
   fecha_parto_estimada TEXT,
   fecha_parto_real     TEXT,
-  nombre_toro          TEXT,
+  nombre_toro          TEXT, -- "Semilla" (inseminación artificial)
+  toro                 TEXT, -- toro de monta natural (registrado o solo nombre externo)
   estado               TEXT DEFAULT 'en_curso'
-                       CHECK(estado IN ('en_curso','parto_exitoso','aborto','reabsorcion')),
+                       CHECK(estado IN ('en_curso','parto_exitoso','nacido_muerto','aborto','reabsorcion')),
   observaciones        TEXT,
   created_at           TIMESTAMPTZ DEFAULT NOW()
 );
 
 CREATE INDEX IF NOT EXISTS idx_gestaciones_animal ON gestaciones(animal_id);
+
+-- Celos
+CREATE TABLE IF NOT EXISTS celos (
+  id                 BIGSERIAL PRIMARY KEY,
+  user_id            UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  animal_id          BIGINT NOT NULL REFERENCES animales(id) ON DELETE CASCADE,
+  fecha_celo         TEXT NOT NULL,
+  fecha_proximo_celo TEXT,
+  observaciones      TEXT,
+  created_at         TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_celos_animal ON celos(animal_id);
 
 -- ============================================================
 -- Row Level Security (cada usuario solo ve sus propios datos)
@@ -90,6 +104,7 @@ ALTER TABLE granjas        ENABLE ROW LEVEL SECURITY;
 ALTER TABLE animales       ENABLE ROW LEVEL SECURITY;
 ALTER TABLE historial_medico ENABLE ROW LEVEL SECURITY;
 ALTER TABLE gestaciones    ENABLE ROW LEVEL SECURITY;
+ALTER TABLE celos          ENABLE ROW LEVEL SECURITY;
 
 -- Granjas
 CREATE POLICY "granjas_select" ON granjas FOR SELECT USING (auth.uid() = user_id);
@@ -114,3 +129,9 @@ CREATE POLICY "gestaciones_select" ON gestaciones FOR SELECT USING (auth.uid() =
 CREATE POLICY "gestaciones_insert" ON gestaciones FOR INSERT WITH CHECK (auth.uid() = user_id);
 CREATE POLICY "gestaciones_update" ON gestaciones FOR UPDATE USING (auth.uid() = user_id);
 CREATE POLICY "gestaciones_delete" ON gestaciones FOR DELETE USING (auth.uid() = user_id);
+
+-- Celos
+CREATE POLICY "celos_select" ON celos FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "celos_insert" ON celos FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "celos_update" ON celos FOR UPDATE USING (auth.uid() = user_id);
+CREATE POLICY "celos_delete" ON celos FOR DELETE USING (auth.uid() = user_id);
