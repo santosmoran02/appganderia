@@ -38,6 +38,9 @@ const GESTACION_ESTADO_LABEL = {
   reabsorcion: 'Reabsorción',
 }
 
+// Estados de inseminación en los que la vaca ha parido (aunque la cría no sobreviva) y cuentan para "Partos"
+const CUENTA_COMO_PARTO = ['parto_exitoso', 'nacido_muerto']
+
 const GESTACION_ESTADO_BADGE = {
   en_curso: { bg: '#dbeafe', color: '#1e40af' },
   parto_exitoso: { bg: '#dcfce7', color: '#15803d' },
@@ -206,9 +209,17 @@ export default function AnimalDetail() {
     setHistorial(h => h.filter(r => r.id !== regId))
   }
 
+  const ajustarPartos = async (delta) => {
+    const nuevosPartos = Math.max(0, (animal.partos || 0) + delta)
+    const updated = await api.updateAnimal(animal.id, { ...animal, partos: nuevosPartos })
+    setAnimal(updated)
+  }
+
   const handleDeleteGestacion = async (gId) => {
+    const g = gestaciones.find(x => x.id === gId)
     await api.deleteGestacion(gId)
-    setGestaciones(g => g.filter(x => x.id !== gId))
+    setGestaciones(gs => gs.filter(x => x.id !== gId))
+    if (g && CUENTA_COMO_PARTO.includes(g.estado)) ajustarPartos(-1)
   }
 
   const handleDeleteCelo = async (cId) => {
@@ -883,6 +894,8 @@ export default function AnimalDetail() {
           gestacion={editingGestacion}
           onClose={() => { setShowGestacionForm(false); setEditingGestacion(null) }}
           onSaved={(g) => {
+            const contabaAntes = CUENTA_COMO_PARTO.includes(editingGestacion?.estado)
+            const cuentaAhora = CUENTA_COMO_PARTO.includes(g.estado)
             setGestaciones(prev =>
               editingGestacion
                 ? prev.map(x => x.id === g.id ? g : x)
@@ -890,6 +903,8 @@ export default function AnimalDetail() {
             )
             setShowGestacionForm(false)
             setEditingGestacion(null)
+            if (cuentaAhora && !contabaAntes) ajustarPartos(1)
+            else if (!cuentaAhora && contabaAntes) ajustarPartos(-1)
           }}
         />
       )}
