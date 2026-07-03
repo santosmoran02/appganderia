@@ -108,7 +108,8 @@ export default function GestacionForm({ animalId, gestacion, onClose, onSaved })
         resultado = await api.createGestacion(payload)
       }
       onSaved(resultado)
-    } catch {
+    } catch (err) {
+      setErrors(e => ({ ...e, general: err.message || 'No se pudo guardar la inseminación' }))
       setSaving(false)
     }
   }
@@ -206,6 +207,8 @@ export default function GestacionForm({ animalId, gestacion, onClose, onSaved })
               rows={4}
             />
           </div>
+
+          {errors.general && <span className="form-error" style={{ display: 'block', marginBottom: 10 }}>{errors.general}</span>}
 
           <div className="modal-footer">
             <button type="button" className="btn btn-secondary" onClick={onClose}>Cancelar</button>
