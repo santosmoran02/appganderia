@@ -261,9 +261,12 @@ export default function AnimalDetail() {
   }
 
   const handleAddDescendiente = () => {
-    // Navega al formulario nuevo pasando este animal como progenitor
+    // Navega al formulario nuevo pasando este animal como progenitor.
+    // Hereda la granja del progenitor para que el descendiente no quede sin granja asignada
+    // (si no, "Vaciar granja"/"Eliminar granja" no lo arrastraría al borrar).
     navigate('/animales/nuevo', {
       state: {
+        granjaId: animal.granja_id || null,
         progenitor: {
           id: animal.id,
           crotal: animal.crotal,

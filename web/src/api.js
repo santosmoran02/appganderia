@@ -39,6 +39,29 @@ async function getUserId() {
   return user.id
 }
 
+// Ids de los animales de una granja + descendientes suyos que se quedaron sin granja asignada
+// (ej. añadidos desde "Añadir descendiente" antes de que heredara la granja del progenitor).
+async function idsGranjaConDescendenciaHuerfana(granjaId) {
+  const { data: base } = await supabase.from('animales').select('id').eq('granja_id', granjaId)
+  const ids = new Set((base || []).map(a => a.id))
+  if (ids.size === 0) return []
+
+  let nuevos = true
+  while (nuevos) {
+    nuevos = false
+    const idsArr = [...ids]
+    const { data: huerfanos } = await supabase
+      .from('animales')
+      .select('id')
+      .is('granja_id', null)
+      .or(`madre_id.in.(${idsArr.join(',')}),padre_id.in.(${idsArr.join(',')})`)
+    for (const h of huerfanos || []) {
+      if (!ids.has(h.id)) { ids.add(h.id); nuevos = true }
+    }
+  }
+  return [...ids]
+}
+
 export const api = {
   // ---- Estadísticas ----
   getEstadisticas: async () => {
@@ -378,13 +401,18 @@ export const api = {
     return result
   },
 
-  deleteGranja: async (id) => {
-    const { data: animalesGranja } = await supabase
-      .from('animales')
-      .select('id')
-      .eq('granja_id', id)
+  deleteAnimalesGranja: async (granjaId) => {
+    const animalIds = await idsGranjaConDescendenciaHuerfana(granjaId)
+    if (animalIds.length > 0) {
+      await supabase.from('animales').update({ madre_id: null }).in('madre_id', animalIds)
+      await supabase.from('animales').update({ padre_id: null }).in('padre_id', animalIds)
+      await supabase.from('animales').delete().in('id', animalIds)
+    }
+    return animalIds.length
+  },
 
-    const animalIds = animalesGranja?.map(a => a.id) || []
+  deleteGranja: async (id) => {
+    const animalIds = await idsGranjaConDescendenciaHuerfana(id)
     if (animalIds.length > 0) {
       await supabase.from('animales').update({ madre_id: null }).in('madre_id', animalIds)
       await supabase.from('animales').update({ padre_id: null }).in('padre_id', animalIds)

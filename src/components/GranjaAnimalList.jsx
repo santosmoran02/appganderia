@@ -35,6 +35,8 @@ export default function GranjaAnimalList({ onGranjaChange }) {
   const [raza, setRaza] = useState('')
   const [loading, setLoading] = useState(true)
   const [showConfirmDelete, setShowConfirmDelete] = useState(false)
+  const [showConfirmVaciar, setShowConfirmVaciar] = useState(false)
+  const [vaciando, setVaciando] = useState(false)
   const [showRenombrar, setShowRenombrar] = useState(false)
   const [nuevoNombre, setNuevoNombre] = useState('')
   const [savingNombre, setSavingNombre] = useState(false)
@@ -82,6 +84,14 @@ export default function GranjaAnimalList({ onGranjaChange }) {
     navigate('/animales')
   }
 
+  const handleVaciarGranja = async () => {
+    setVaciando(true)
+    await api.deleteAnimalesGranja(Number(granjaId))
+    setVaciando(false)
+    setShowConfirmVaciar(false)
+    cargar()
+  }
+
   if (!granja) return <div className="loading">Cargando...</div>
 
   return (
@@ -95,6 +105,10 @@ export default function GranjaAnimalList({ onGranjaChange }) {
           <button className="btn btn-danger" onClick={() => setShowConfirmDelete(true)}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
             Eliminar granja
+          </button>
+          <button className="btn btn-danger" onClick={() => setShowConfirmVaciar(true)}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+            Vaciar granja
           </button>
           <button className="btn btn-secondary" onClick={() => { setNuevoNombre(granja.nombre); setErrorNombre(''); setShowRenombrar(true) }}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
@@ -210,11 +224,29 @@ export default function GranjaAnimalList({ onGranjaChange }) {
             <div className="modal-title">Eliminar granja</div>
             <p className="confirm-text">
               ¿Seguro que quieres eliminar <strong>{granja.nombre}</strong>?
-              Se eliminarán también todos los animales que tiene dentro. Esta acción no se puede deshacer.
+              Se eliminarán también todos los animales que tiene dentro, y sus descendientes que se hayan quedado sin granja asignada. Esta acción no se puede deshacer.
             </p>
             <div className="modal-footer">
               <button className="btn btn-secondary" onClick={() => setShowConfirmDelete(false)}>Cancelar</button>
               <button className="btn btn-danger" onClick={handleDeleteGranja}>Eliminar</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showConfirmVaciar && (
+        <div className="modal-overlay">
+          <div className="modal">
+            <div className="modal-title">Vaciar granja</div>
+            <p className="confirm-text">
+              ¿Seguro que quieres eliminar <strong>todos</strong> los animales de <strong>{granja.nombre}</strong>?
+              Se borrarán también su historial médico, inseminaciones, celos, y los descendientes suyos que se hayan quedado sin granja asignada. Esto afecta a todos los animales de la granja, aunque tengas un filtro aplicado en la lista. La granja en sí no se elimina, se queda vacía. Esta acción no se puede deshacer.
+            </p>
+            <div className="modal-footer">
+              <button className="btn btn-secondary" onClick={() => setShowConfirmVaciar(false)} disabled={vaciando}>Cancelar</button>
+              <button className="btn btn-danger" onClick={handleVaciarGranja} disabled={vaciando}>
+                {vaciando ? 'Vaciando...' : 'Vaciar granja'}
+              </button>
             </div>
           </div>
         </div>
