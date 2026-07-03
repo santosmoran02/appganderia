@@ -178,7 +178,6 @@ export default function AnimalDetail() {
   const [savingGranja, setSavingGranja] = useState(false)
   const [showConfirmDelete, setShowConfirmDelete] = useState(false)
   const [confirmDeleteDesc, setConfirmDeleteDesc] = useState(null) // id del descendiente a borrar
-  const [avisoNacimiento, setAvisoNacimiento] = useState(null)
 
   const cargar = () => {
     api.getAnimal(Number(id)).then(setAnimal)
@@ -259,23 +258,6 @@ export default function AnimalDetail() {
   const handleDeleteDescendiente = async (descId) => {
     await api.deleteAnimal(descId)
     setDescendencia(d => d.filter(x => x.id !== descId))
-  }
-
-  const crearDescendienteAutomatico = async (g) => {
-    try {
-      const nuevo = await api.createAnimal({
-        crotal: `Pendiente-${g.id}`,
-        fecha_nacimiento: g.fecha_parto_real || null,
-        estado: 'otro',
-        granja_id: animal.granja_id || null,
-        madre_id: animal.id,
-        padre_nombre_ext: g.toro || null,
-      })
-      api.getDescendencia(animal.id).then(setDescendencia)
-      setAvisoNacimiento({ tipo: 'ok', animalId: nuevo.id })
-    } catch (err) {
-      setAvisoNacimiento({ tipo: 'error', mensaje: err.message || 'No se pudo crear el perfil del descendiente automáticamente' })
-    }
   }
 
   const handleAddDescendiente = () => {
@@ -491,33 +473,6 @@ export default function AnimalDetail() {
 
       {tab === 'inseminacion' && (
         <div>
-          {avisoNacimiento && (
-            <div
-              style={{
-                background: avisoNacimiento.tipo === 'ok' ? 'var(--green-50)' : 'var(--red-100)',
-                border: `1px solid ${avisoNacimiento.tipo === 'ok' ? 'var(--green-100)' : 'var(--red-500)'}`,
-                borderRadius: 8, padding: '12px 14px', marginBottom: 16, fontSize: 13,
-                color: avisoNacimiento.tipo === 'ok' ? 'var(--green-700)' : '#991b1b',
-                display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'space-between',
-              }}
-            >
-              <div>
-                {avisoNacimiento.tipo === 'ok' ? (
-                  <>Se ha creado automáticamente el perfil del nuevo descendiente. Cuando tengas el crotal, el nombre y el sexo, complétalo desde su ficha.</>
-                ) : (
-                  <><strong>No se pudo crear el perfil del descendiente.</strong> {avisoNacimiento.mensaje}</>
-                )}
-              </div>
-              <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
-                {avisoNacimiento.tipo === 'ok' && (
-                  <button className="btn btn-primary" style={{ padding: '4px 10px' }} onClick={() => navigate(`/animales/${avisoNacimiento.animalId}/editar`)}>
-                    Completar ficha
-                  </button>
-                )}
-                <button onClick={() => setAvisoNacimiento(null)} className="btn btn-secondary" style={{ padding: '4px 10px' }}>Cerrar</button>
-              </div>
-            </div>
-          )}
           {/* Cabecera con los dos botones */}
           <div className="historial-header">
             <div style={{ fontWeight: 600, color: 'var(--gray-700)' }}>
@@ -928,7 +883,6 @@ export default function AnimalDetail() {
           gestacion={editingGestacion}
           onClose={() => { setShowGestacionForm(false); setEditingGestacion(null) }}
           onSaved={(g) => {
-            const eraExitosoAntes = editingGestacion?.estado === 'parto_exitoso'
             setGestaciones(prev =>
               editingGestacion
                 ? prev.map(x => x.id === g.id ? g : x)
@@ -936,9 +890,6 @@ export default function AnimalDetail() {
             )
             setShowGestacionForm(false)
             setEditingGestacion(null)
-            if (g.estado === 'parto_exitoso' && !eraExitosoAntes) {
-              crearDescendienteAutomatico(g)
-            }
           }}
         />
       )}
