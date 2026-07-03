@@ -275,6 +275,14 @@ export const api = {
   },
 
   // ---- Celos ----
+  getAllCelos: async () => {
+    const { data } = await supabase
+      .from('celos')
+      .select('*, animal:animal_id (crotal, nombre)')
+      .order('fecha_celo', { ascending: false })
+    return data || []
+  },
+
   getCelos: async (animalId) => {
     const { data } = await supabase
       .from('celos')

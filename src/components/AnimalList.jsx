@@ -100,10 +100,11 @@ function descargar(blob, nombre) {
 }
 
 async function exportarBackupCSV() {
-  const [animales, historial, gestaciones, granjas] = await Promise.all([
+  const [animales, historial, gestaciones, celos, granjas] = await Promise.all([
     api.getAnimales(),
     api.getAllHistorialMedico(),
     api.getAllGestaciones(),
+    api.getAllCelos(),
     api.getGranjas(),
   ])
   const granjaNombre = id => granjas.find(g => g.id === id)?.nombre ?? ''
@@ -111,7 +112,7 @@ async function exportarBackupCSV() {
   const zip = new JSZip()
   zip.file('animales.csv', aAnsi(crearCSV(
     ['Crotal', 'Nombre', 'Raza', 'Sexo', 'Estado', 'Fecha Nacimiento', 'Peso (kg)', 'Partos', 'Madre Crotal', 'Madre Nombre', 'Padre Crotal', 'Padre Nombre', 'Notas', 'Granja', 'Estado Desde', 'Estado Hasta'],
-    animales.map(a => [a.crotal, a.nombre, a.raza, a.sexo, ESTADO_LABEL[a.estado] ?? a.estado, a.fecha_nacimiento, a.peso, a.partos, a.madre_crotal, a.madre_nombre, a.padre_crotal, a.padre_nombre, a.notas, granjaNombre(a.granja_id), a.estado_desde, a.estado_hasta])
+    animales.map(a => [a.crotal, a.nombre, a.raza, a.sexo, ESTADO_LABEL[a.estado] ?? a.estado, a.fecha_nacimiento, a.peso, a.partos, a.madre_crotal || a.madre_crotal_ext, a.madre_nombre || a.madre_nombre_ext, a.padre_crotal || a.padre_crotal_ext, a.padre_nombre || a.padre_nombre_ext, a.notas, granjaNombre(a.granja_id), a.estado_desde, a.estado_hasta])
   )))
   zip.file('historial_medico.csv', aAnsi(crearCSV(
     ['Crotal Animal', 'Nombre Animal', 'Tipo', 'Fecha Inicio', 'Fecha Fin', 'Descripción', 'Veterinario'],
@@ -120,6 +121,10 @@ async function exportarBackupCSV() {
   zip.file('gestaciones.csv', aAnsi(crearCSV(
     ['Crotal Animal', 'Nombre Animal', 'Fecha Inseminación', 'Fecha Parto Estimada', 'Fecha Parto Real', 'Toro / Semilla', 'Estado', 'Observaciones', 'Fecha Secado Estimada'],
     gestaciones.map(g => [g.animal?.crotal, g.animal?.nombre, g.fecha_inseminacion, g.fecha_parto_estimada, g.fecha_parto_real, g.nombre_toro, GESTACION_ESTADO_LABEL[g.estado] ?? g.estado, g.observaciones, g.fecha_secado_estimada])
+  )))
+  zip.file('celos.csv', aAnsi(crearCSV(
+    ['Crotal Animal', 'Nombre Animal', 'Fecha Celo', 'Fecha Próximo Celo', 'Observaciones'],
+    celos.map(c => [c.animal?.crotal, c.animal?.nombre, c.fecha_celo, c.fecha_proximo_celo, c.observaciones])
   )))
 
   const blob = await zip.generateAsync({ type: 'blob' })
@@ -148,15 +153,17 @@ async function leerCSVDelZip(zip, nombre) {
 
 async function importarBackupCSV(file) {
   const zip = await JSZip.loadAsync(file)
-  const [filasAnimales, filasHistorial, filasGestaciones] = await Promise.all([
+  const [filasAnimales, filasHistorial, filasGestaciones, filasCelos] = await Promise.all([
     leerCSVDelZip(zip, 'animales.csv'),
     leerCSVDelZip(zip, 'historial_medico.csv'),
     leerCSVDelZip(zip, 'gestaciones.csv'),
+    leerCSVDelZip(zip, 'celos.csv'),
   ])
-  const [granjas, historialExistente, gestacionesExistentes] = await Promise.all([
+  const [granjas, historialExistente, gestacionesExistentes, celosExistentes] = await Promise.all([
     api.getGranjas(),
     api.getAllHistorialMedico(),
     api.getAllGestaciones(),
+    api.getAllCelos(),
   ])
 
   const avisos = []
@@ -318,14 +325,49 @@ async function importarBackupCSV(file) {
     }
   }
 
-  return { animalesCreados, animalesActualizados, historialCreados, historialOmitidos, gestacionesCreadas, gestacionesOmitidas, avisos }
+  // ---- Celos: se añaden como nuevos, deduplicando por contenido ----
+  const claveCelo = c => `${c.fecha_celo || ''}|${c.fecha_proximo_celo || ''}|${(c.observaciones || '').trim()}`
+  const celosVistos = new Set(celosExistentes.map(c => `${c.animal_id}|${claveCelo(c)}`))
+  let celosCreados = 0, celosOmitidos = 0
+
+  for (const fila of filasCelos) {
+    const animalId = await resolverAnimalId(fila['Crotal Animal'])
+    if (!animalId) {
+      avisos.push(`Celo: no se encontró ningún animal con crotal "${fila['Crotal Animal']}"; se omitió.`)
+      celosOmitidos++
+      continue
+    }
+    const payload = {
+      animal_id: animalId,
+      fecha_celo: (fila['Fecha Celo'] || '').trim() || null,
+      fecha_proximo_celo: (fila['Fecha Próximo Celo'] || '').trim() || null,
+      observaciones: (fila['Observaciones'] || '').trim() || null,
+    }
+    if (!payload.fecha_celo) {
+      avisos.push(`Celo de ${fila['Crotal Animal']}: sin fecha de celo; se omitió.`)
+      celosOmitidos++
+      continue
+    }
+    const clave = `${animalId}|${claveCelo(payload)}`
+    if (celosVistos.has(clave)) { celosOmitidos++; continue }
+    try {
+      await api.createCelo(payload)
+      celosVistos.add(clave)
+      celosCreados++
+    } catch (err) {
+      avisos.push(`Celo de ${fila['Crotal Animal']}: ${err.message || 'no se pudo guardar'}`)
+    }
+  }
+
+  return { animalesCreados, animalesActualizados, historialCreados, historialOmitidos, gestacionesCreadas, gestacionesOmitidas, celosCreados, celosOmitidos, avisos }
 }
 
 async function exportarBackupPDF() {
-  const [animales, historial, gestaciones] = await Promise.all([
+  const [animales, historial, gestaciones, celos] = await Promise.all([
     api.getAnimales(),
     api.getAllHistorialMedico(),
     api.getAllGestaciones(),
+    api.getAllCelos(),
   ])
 
   const doc = new jsPDF({ orientation: 'landscape' })
@@ -400,6 +442,24 @@ async function exportarBackupPDF() {
     columnStyles: { 7: { cellWidth: 60 } },
   })
 
+  // Sección 4: Celos
+  doc.addPage()
+  doc.setFontSize(12)
+  doc.setTextColor(0)
+  doc.text(`Celos (${celos.length} registros)`, 14, 14)
+  autoTable(doc, {
+    startY: 18,
+    head: [['Crotal', 'Nombre Animal', 'Fecha Celo', 'Fecha Próximo Celo', 'Observaciones']],
+    body: celos.map(c => [
+      c.animal?.crotal ?? '', c.animal?.nombre ?? '',
+      c.fecha_celo ?? '', c.fecha_proximo_celo ?? '',
+      c.observaciones ?? '',
+    ]),
+    styles: tableStyle,
+    headStyles: headStyle,
+    columnStyles: { 4: { cellWidth: 80 } },
+  })
+
   descargar(
     new Blob([doc.output('arraybuffer')], { type: 'application/pdf' }),
     `ganadapp-backup-${new Date().toISOString().slice(0, 10)}.pdf`
@@ -440,7 +500,7 @@ export default function AnimalList({ onGranjaChange }) {
     const confirmado = window.confirm(
       'Vas a restaurar una copia de seguridad.\n\n' +
       '- Los animales que ya existan (mismo crotal) se actualizarán con los datos del archivo.\n' +
-      '- Los registros médicos y de gestación se añadirán como nuevos: si subes la misma copia dos veces, se detectan y no se duplican mientras el contenido sea idéntico.\n\n' +
+      '- Los registros médicos, de gestación y de celos se añadirán como nuevos: si subes la misma copia dos veces, se detectan y no se duplican mientras el contenido sea idéntico.\n\n' +
       '¿Quieres continuar?'
     )
     if (!confirmado) return
@@ -471,7 +531,7 @@ export default function AnimalList({ onGranjaChange }) {
           <button
             className="btn btn-secondary"
             onClick={exportarBackupCSV}
-            title="Copia de seguridad en CSV (ZIP con animales, historial médico y gestaciones)"
+            title="Copia de seguridad en CSV (ZIP con animales, historial médico, gestaciones y celos)"
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
             Copia CSV
@@ -479,7 +539,7 @@ export default function AnimalList({ onGranjaChange }) {
           <button
             className="btn btn-secondary"
             onClick={exportarBackupPDF}
-            title="Copia de seguridad en PDF (animales, historial médico y gestaciones)"
+            title="Copia de seguridad en PDF (animales, historial médico, gestaciones y celos)"
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
             Copia PDF
@@ -513,6 +573,7 @@ export default function AnimalList({ onGranjaChange }) {
                 <strong>Copia restaurada.</strong> Animales: {resultadoRestauracion.resumen.animalesCreados} creados, {resultadoRestauracion.resumen.animalesActualizados} actualizados.
                 {' '}Historial médico: {resultadoRestauracion.resumen.historialCreados} añadidos{resultadoRestauracion.resumen.historialOmitidos ? `, ${resultadoRestauracion.resumen.historialOmitidos} omitidos` : ''}.
                 {' '}Gestaciones: {resultadoRestauracion.resumen.gestacionesCreadas} añadidas{resultadoRestauracion.resumen.gestacionesOmitidas ? `, ${resultadoRestauracion.resumen.gestacionesOmitidas} omitidas` : ''}.
+                {' '}Celos: {resultadoRestauracion.resumen.celosCreados} añadidos{resultadoRestauracion.resumen.celosOmitidos ? `, ${resultadoRestauracion.resumen.celosOmitidos} omitidos` : ''}.
                 {resultadoRestauracion.resumen.avisos.length > 0 && (
                   <ul style={{ margin: '8px 0 0', paddingLeft: 18 }}>
                     {resultadoRestauracion.resumen.avisos.slice(0, 5).map((a, i) => <li key={i}>{a}</li>)}
