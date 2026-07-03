@@ -23,8 +23,6 @@ export default function AnimalForm({ onGranjaChange }) {
   const granjaIdInicial = location.state?.granjaId ?? null
   // Si venimos desde "Añadir descendiente", el progenitor llega en location.state
   const progenitorInicial = location.state?.progenitor ?? null
-  // Si venimos de marcar una inseminación como "Parto exitoso", llega la madre/padre/fecha en location.state
-  const nacimientoInicial = location.state?.nacimiento ?? null
 
   const initialForm = () => {
     const base = { ...EMPTY, granja_id: granjaIdInicial }
@@ -36,16 +34,6 @@ export default function AnimalForm({ onGranjaChange }) {
         madre_nombre: esMadre ? (progenitorInicial.nombre || '') : '',
         padre_crotal: !esMadre ? progenitorInicial.crotal : '',
         padre_nombre: !esMadre ? (progenitorInicial.nombre || '') : '',
-      }
-    }
-    if (!isEdit && nacimientoInicial) {
-      return {
-        ...base,
-        madre_crotal: nacimientoInicial.madre?.crotal || '',
-        madre_nombre: nacimientoInicial.madre?.nombre || '',
-        padre_nombre: nacimientoInicial.padreNombre || '',
-        fecha_nacimiento: nacimientoInicial.fechaNacimiento || '',
-        granja_id: nacimientoInicial.granjaId ?? base.granja_id,
       }
     }
     return base
@@ -176,13 +164,6 @@ export default function AnimalForm({ onGranjaChange }) {
         <div style={{ background: 'var(--green-50)', border: '1px solid var(--green-100)', borderRadius: 8, padding: '10px 14px', marginBottom: 20, fontSize: 13, color: 'var(--green-700)', display: 'flex', alignItems: 'center', gap: 8 }}>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 16, height: 16, flexShrink: 0 }}><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
           Descendiente de <strong style={{ marginLeft: 4 }}>{progenitorInicial.nombre || progenitorInicial.crotal}</strong>. El progenitor ya está pre-rellenado en genealogía.
-        </div>
-      )}
-
-      {!isEdit && nacimientoInicial && (
-        <div style={{ background: 'var(--green-50)', border: '1px solid var(--green-100)', borderRadius: 8, padding: '10px 14px', marginBottom: 20, fontSize: 13, color: 'var(--green-700)', display: 'flex', alignItems: 'center', gap: 8 }}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 16, height: 16, flexShrink: 0 }}><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-          Nuevo descendiente de <strong style={{ marginLeft: 4 }}>{nacimientoInicial.madre?.nombre || nacimientoInicial.madre?.crotal}</strong>{nacimientoInicial.fechaNacimiento ? `, nacido el ${nacimientoInicial.fechaNacimiento}` : ''}. Completa el resto de los datos (crotal, sexo...).
         </div>
       )}
 

@@ -77,6 +77,9 @@ export default function GestacionForm({ animalId, gestacion, onClose, onSaved })
   const validate = () => {
     const e = {}
     if (!form.fecha_inseminacion) e.fecha_inseminacion = 'La fecha de inseminación es obligatoria'
+    if (form.estado === 'parto_exitoso' && !form.fecha_parto_real) {
+      e.fecha_parto_real = 'Indica la fecha real del parto para poder crear el descendiente'
+    }
     return e
   }
 
@@ -137,7 +140,11 @@ export default function GestacionForm({ animalId, gestacion, onClose, onSaved })
             <div className="form-group">
               <label>Fecha real del parto</label>
               <input type="date" value={form.fecha_parto_real} onChange={e => set('fecha_parto_real', e.target.value)} />
-              <span style={{ fontSize: 11, color: 'var(--gray-400)', marginTop: 3 }}>Rellenar cuando ocurra el parto</span>
+              {errors.fecha_parto_real ? (
+                <span className="form-error">{errors.fecha_parto_real}</span>
+              ) : (
+                <span style={{ fontSize: 11, color: 'var(--gray-400)', marginTop: 3 }}>Rellenar cuando ocurra el parto (aunque sea antes o después de lo estimado)</span>
+              )}
             </div>
           </div>
 
