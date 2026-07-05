@@ -7,7 +7,7 @@ const ESTADO_LABEL_CAL = {
   ordenar_aparte: 'Ordeñar aparte', otro: 'Otro', vendido: 'Vendido', fallecido: 'Fallecido',
 }
 
-const ICONO_EVENTO = { parto: '🐄', secado: '🥛', estado: '🔔', celo: '🔴' }
+const ICONO_EVENTO = { parto: '🐄', secado: '🥛', estado: '🔔', celo: '🔴', actividad: '📌' }
 const LABEL_EVENTO = { parto: 'Parto estimado', secado: 'Secado estimado', celo: 'Próximo celo' }
 
 function isoFecha(date) {
@@ -36,12 +36,13 @@ function formatFechaCorta(iso) {
   return d.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' })
 }
 
-function unificarEventosSemana(partos, estadosHasta, celos) {
+function unificarEventosSemana(partos, estadosHasta, celos, actividades) {
   return [
     ...partos.map(e => ({ ...e, tipo: 'parto', fecha: e.fecha_parto_estimada, key: `parto-${e.id}` })),
     ...partos.filter(e => e.fecha_secado_estimada).map(e => ({ ...e, tipo: 'secado', fecha: e.fecha_secado_estimada, key: `secado-${e.id}` })),
     ...estadosHasta.map(e => ({ ...e, tipo: 'estado', fecha: e.estado_hasta, key: `estado-${e.id}` })),
     ...celos.map(e => ({ ...e, tipo: 'celo', fecha: e.fecha_proximo_celo, key: `celo-${e.id}` })),
+    ...actividades.map(e => ({ ...e, tipo: 'actividad', fecha: e.fecha, key: `actividad-${e.id}` })),
   ]
 }
 
@@ -60,12 +61,13 @@ export default function Dashboard() {
       api.getAllGestacionesCalendario(),
       api.getAnimalesConEstadoHasta(),
       api.getAllCelosCalendario(),
+      api.getAllActividades(),
       api.getEventosCompletados(),
-    ]).then(([partos, estadosHasta, celos, completadosSet]) => {
+    ]).then(([partos, estadosHasta, celos, actividades, completadosSet]) => {
       const lunes = startOfWeek(new Date())
       const inicioIso = isoFecha(lunes)
       const finIso = isoFecha(addDays(lunes, 6))
-      const eventos = unificarEventosSemana(partos, estadosHasta, celos)
+      const eventos = unificarEventosSemana(partos, estadosHasta, celos, actividades)
         .filter(e => e.fecha && e.fecha >= inicioIso && e.fecha <= finIso)
         .sort((a, b) => a.fecha.localeCompare(b.fecha))
       setEventosSemana(eventos)
@@ -108,10 +110,11 @@ export default function Dashboard() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {eventosSemana.map(e => {
               const esGestacion = e.tipo === 'parto' || e.tipo === 'secado'
-              const nombre = (esGestacion || e.tipo === 'celo') ? (e.animal_nombre || e.crotal) : (e.nombre || e.crotal)
-              const animalId = (esGestacion || e.tipo === 'celo') ? e.animal_id : e.id
+              const esActividad = e.tipo === 'actividad'
+              const nombre = esActividad ? e.nombre : (esGestacion || e.tipo === 'celo') ? (e.animal_nombre || e.crotal) : (e.nombre || e.crotal)
+              const animalId = esActividad ? null : (esGestacion || e.tipo === 'celo') ? e.animal_id : e.id
               const hecho = completados.has(e.key)
-              const label = e.tipo === 'estado' ? `Fin de estado (${ESTADO_LABEL_CAL[e.estado] || e.estado})` : LABEL_EVENTO[e.tipo]
+              const label = esActividad ? e.vaca : e.tipo === 'estado' ? `Fin de estado (${ESTADO_LABEL_CAL[e.estado] || e.estado})` : LABEL_EVENTO[e.tipo]
               return (
                 <div
                   key={e.key}
@@ -129,13 +132,13 @@ export default function Dashboard() {
                   <span style={{ fontSize: 16, flexShrink: 0 }}>{ICONO_EVENTO[e.tipo]}</span>
                   <span
                     style={{
-                      flex: 1, cursor: 'pointer', fontSize: 13,
+                      flex: 1, cursor: animalId ? 'pointer' : 'default', fontSize: 13,
                       textDecoration: hecho ? 'line-through' : 'none',
                       color: hecho ? 'var(--gray-400)' : 'var(--gray-800)',
                     }}
-                    onClick={() => navigate(`/animales/${animalId}`)}
+                    onClick={() => animalId && navigate(`/animales/${animalId}`)}
                   >
-                    <strong>{nombre}</strong> — {label}
+                    <strong>{nombre}</strong>{label ? ` — ${label}` : ''}
                   </span>
                   <span style={{ fontSize: 12, color: 'var(--gray-400)', flexShrink: 0 }}>{formatFechaCorta(e.fecha)}</span>
                 </div>

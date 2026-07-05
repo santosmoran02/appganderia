@@ -1107,6 +1107,8 @@ textarea { resize: vertical; min-height: 80px; }
 .cal-dia--vacio { background: var(--gray-50); border-color: transparent; }
 .cal-dia--hoy { border-color: var(--green-600); background: var(--green-50); }
 .cal-dia--tiene-eventos { background: #fff; }
+.cal-dia:not(.cal-dia--vacio) { cursor: pointer; }
+.cal-dia:not(.cal-dia--vacio):not(.cal-dia--hoy):hover { background: var(--gray-50); }
 
 .cal-dia-numero {
   font-size: 12px;
@@ -1181,7 +1183,9 @@ textarea { resize: vertical; min-height: 80px; }
   display: flex;
   flex-direction: column;
   gap: 4px;
+  cursor: pointer;
 }
+.cal-semana-dia-body:hover { background: var(--gray-50); }
 
 .cal-semana-vacio {
   font-size: 18px;
@@ -1247,6 +1251,17 @@ textarea { resize: vertical; min-height: 80px; }
 .cal-evento--celo:hover { background: #fbcfe8; }
 .cal-evento--celo .cal-evento-label { color: #9d174d; }
 
+.cal-mes-badge--actividad {
+  background: #7c3aed;
+}
+
+.cal-evento--actividad {
+  background: #ede9fe;
+  border-color: #7c3aed;
+}
+.cal-evento--actividad:hover { background: #ddd6fe; }
+.cal-evento--actividad .cal-evento-label { color: #5b21b6; }
+
 .cal-mes-evento-icon { font-size: 11px; flex-shrink: 0; }
 
 .cal-leyenda-item {
@@ -1268,6 +1283,7 @@ textarea { resize: vertical; min-height: 80px; }
 .cal-leyenda-dot--secado { background: #2563eb; }
 .cal-leyenda-dot--estado { background: #d97706; }
 .cal-leyenda-dot--celo { background: #db2777; }
+.cal-leyenda-dot--actividad { background: #7c3aed; }
 
 /* Popup detalle parto */
 .cal-popup-overlay {
@@ -1369,6 +1385,8 @@ textarea { resize: vertical; min-height: 80px; }
   transition: background 0.15s;
 }
 .cal-popup-btn:hover { background: var(--green-700); }
+.cal-popup-btn--danger { background: var(--red-500); }
+.cal-popup-btn--danger:hover { background: #dc2626; }
 
 /* ===== Auth ===== */
 .login-page {

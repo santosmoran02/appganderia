@@ -377,6 +377,27 @@ export const api = {
     await supabase.from('eventos_completados').delete().eq('evento_key', eventoKey)
   },
 
+  // ---- Actividades (eventos manuales del Calendario) ----
+  getAllActividades: async () => {
+    const { data } = await supabase.from('actividades').select('*').order('fecha', { ascending: true })
+    return data || []
+  },
+
+  createActividad: async (data) => {
+    const userId = await getUserId()
+    const { data: result, error } = await supabase
+      .from('actividades')
+      .insert({ ...data, user_id: userId })
+      .select()
+      .single()
+    if (error) throw error
+    return result
+  },
+
+  deleteActividad: async (id) => {
+    await supabase.from('actividades').delete().eq('id', id)
+  },
+
   // ---- Granjas ----
   getGranjas: async () => {
     const userId = await getUserId()

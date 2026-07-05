@@ -38,19 +38,20 @@ function formatFechaCal(iso) {
   return d.toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' })
 }
 
-// Convierte ambas listas en una lista unificada con campo `fecha` y `tipo`
-function unificarEventos(partos, estadosHasta, celos) {
+// Convierte todas las listas en una lista unificada con campo `fecha` y `tipo`
+function unificarEventos(partos, estadosHasta, celos, actividades) {
   return [
     ...partos.map(e => ({ ...e, tipo: 'parto', fecha: e.fecha_parto_estimada })),
     ...partos.filter(e => e.fecha_secado_estimada).map(e => ({ ...e, tipo: 'secado', fecha: e.fecha_secado_estimada })),
     ...estadosHasta.map(e => ({ ...e, tipo: 'estado', fecha: e.estado_hasta })),
     ...celos.map(e => ({ ...e, tipo: 'celo', fecha: e.fecha_proximo_celo })),
+    ...actividades.map(e => ({ ...e, tipo: 'actividad', fecha: e.fecha })),
   ]
 }
 
-const ICONO_EVENTO = { parto: '🐄', secado: '🥛', estado: '🔔', celo: '🔴' }
+const ICONO_EVENTO = { parto: '🐄', secado: '🥛', estado: '🔔', celo: '🔴', actividad: '📌' }
 
-function PopupEvento({ evento, onClose, onIr }) {
+function PopupEvento({ evento, onClose, onIr, onDelete }) {
   const ref = useRef(null)
   useEffect(() => {
     const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) onClose() }
@@ -60,7 +61,8 @@ function PopupEvento({ evento, onClose, onIr }) {
 
   const esGestacion = evento.tipo === 'parto' || evento.tipo === 'secado'
   const esCelo = evento.tipo === 'celo'
-  const nombre = (esGestacion || esCelo) ? (evento.animal_nombre || evento.crotal) : (evento.nombre || evento.crotal)
+  const esActividad = evento.tipo === 'actividad'
+  const nombre = esActividad ? evento.nombre : (esGestacion || esCelo) ? (evento.animal_nombre || evento.crotal) : (evento.nombre || evento.crotal)
   const animalId = (esGestacion || esCelo) ? evento.animal_id : evento.id
 
   return (
@@ -70,14 +72,23 @@ function PopupEvento({ evento, onClose, onIr }) {
           <span className="cal-popup-icon">{ICONO_EVENTO[evento.tipo]}</span>
           <div style={{ flex: 1 }}>
             <div className="cal-popup-nombre">{nombre}</div>
-            <div className="cal-popup-crotal">#{evento.crotal}</div>
+            {esActividad ? (
+              evento.vaca && <div className="cal-popup-crotal">Vaca: {evento.vaca}</div>
+            ) : (
+              <div className="cal-popup-crotal">#{evento.crotal}</div>
+            )}
           </div>
           <button className="cal-popup-close" onClick={onClose}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </button>
         </div>
         <div className="cal-popup-body">
-          {esCelo ? (
+          {esActividad ? (
+            <div className="cal-popup-row">
+              <span className="cal-popup-label">Fecha</span>
+              <span className="cal-popup-value">{formatFechaCal(evento.fecha)}</span>
+            </div>
+          ) : esCelo ? (
             <>
               <div className="cal-popup-row">
                 <span className="cal-popup-label">Próximo celo estimado</span>
@@ -142,9 +153,76 @@ function PopupEvento({ evento, onClose, onIr }) {
             </>
           )}
         </div>
-        <button className="cal-popup-btn" onClick={() => onIr(animalId)}>
-          Ver ficha del animal →
-        </button>
+        {esActividad ? (
+          <button className="cal-popup-btn cal-popup-btn--danger" onClick={() => onDelete(evento.id)}>
+            Eliminar actividad
+          </button>
+        ) : (
+          <button className="cal-popup-btn" onClick={() => onIr(animalId)}>
+            Ver ficha del animal →
+          </button>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function ModalNuevaActividad({ fecha, onClose, onSave }) {
+  const [form, setForm] = useState({ fecha, nombre: '', vaca: '' })
+  const [error, setError] = useState('')
+  const [saving, setSaving] = useState(false)
+
+  const handleGuardar = async () => {
+    if (!form.fecha) { setError('La fecha es obligatoria'); return }
+    if (!form.nombre.trim()) { setError('El nombre de la actividad es obligatorio'); return }
+    setSaving(true)
+    setError('')
+    try {
+      await onSave({ fecha: form.fecha, nombre: form.nombre.trim(), vaca: form.vaca.trim() || null })
+    } catch {
+      setError('No se pudo guardar la actividad')
+      setSaving(false)
+    }
+  }
+
+  return (
+    <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
+      <div className="modal">
+        <div className="modal-title">Nueva actividad</div>
+        <div className="form-group">
+          <label>Fecha</label>
+          <input
+            type="date"
+            value={form.fecha}
+            onChange={e => setForm(f => ({ ...f, fecha: e.target.value }))}
+          />
+        </div>
+        <div className="form-group">
+          <label>Nombre de la actividad</label>
+          <input
+            type="text"
+            value={form.nombre}
+            onChange={e => setForm(f => ({ ...f, nombre: e.target.value }))}
+            placeholder="Ej: Desparasitar, Revisar pezuñas..."
+            autoFocus
+          />
+        </div>
+        <div className="form-group">
+          <label>Vaca (opcional)</label>
+          <input
+            type="text"
+            value={form.vaca}
+            onChange={e => setForm(f => ({ ...f, vaca: e.target.value }))}
+            placeholder="Ej: Manchada"
+          />
+        </div>
+        {error && <span className="form-error">{error}</span>}
+        <div className="modal-footer">
+          <button className="btn btn-secondary" onClick={onClose}>Cancelar</button>
+          <button className="btn btn-primary" onClick={handleGuardar} disabled={saving}>
+            {saving ? 'Guardando...' : 'Crear actividad'}
+          </button>
+        </div>
       </div>
     </div>
   )
@@ -152,7 +230,7 @@ function PopupEvento({ evento, onClose, onIr }) {
 
 function EventoItem({ evento, onSelect }) {
   const esGestacion = evento.tipo === 'parto' || evento.tipo === 'secado'
-  const clase = evento.tipo === 'estado' ? 'cal-evento--estado' : evento.tipo === 'secado' ? 'cal-evento--secado' : evento.tipo === 'celo' ? 'cal-evento--celo' : ''
+  const clase = evento.tipo === 'estado' ? 'cal-evento--estado' : evento.tipo === 'secado' ? 'cal-evento--secado' : evento.tipo === 'celo' ? 'cal-evento--celo' : evento.tipo === 'actividad' ? 'cal-evento--actividad' : ''
   return (
     <div
       className={`cal-evento ${clase}`}
@@ -160,7 +238,7 @@ function EventoItem({ evento, onSelect }) {
     >
       <span className="cal-evento-icon">{ICONO_EVENTO[evento.tipo]}</span>
       <span className="cal-evento-label">
-        {(esGestacion || evento.tipo === 'celo') ? (evento.animal_nombre || evento.crotal) : (evento.nombre || evento.crotal)}
+        {evento.tipo === 'actividad' ? evento.nombre : (esGestacion || evento.tipo === 'celo') ? (evento.animal_nombre || evento.crotal) : (evento.nombre || evento.crotal)}
       </span>
     </div>
   )
@@ -192,6 +270,7 @@ function VistaAnual({ eventos, año, onNavigate, onSelect }) {
           const nSecados = evts.filter(e => e.tipo === 'secado').length
           const nEstados = evts.filter(e => e.tipo === 'estado').length
           const nCelos = evts.filter(e => e.tipo === 'celo').length
+          const nActividades = evts.filter(e => e.tipo === 'actividad').length
           return (
             <div key={idx} className={`cal-mes-card ${evts.length > 0 ? 'cal-mes-card--activo' : ''}`}>
               <div className="cal-mes-header">
@@ -201,6 +280,7 @@ function VistaAnual({ eventos, año, onNavigate, onSelect }) {
                   {nSecados > 0 && <span className="cal-mes-badge cal-mes-badge--secado">{nSecados} secado{nSecados !== 1 ? 's' : ''}</span>}
                   {nEstados > 0 && <span className="cal-mes-badge cal-mes-badge--estado">{nEstados} estado{nEstados !== 1 ? 's' : ''}</span>}
                   {nCelos > 0 && <span className="cal-mes-badge cal-mes-badge--celo">{nCelos} celo{nCelos !== 1 ? 's' : ''}</span>}
+                  {nActividades > 0 && <span className="cal-mes-badge cal-mes-badge--actividad">{nActividades} actividad{nActividades !== 1 ? 'es' : ''}</span>}
                 </div>
               </div>
               {evts.length === 0 ? (
@@ -210,7 +290,7 @@ function VistaAnual({ eventos, año, onNavigate, onSelect }) {
                   {evts.map((e, i) => {
                     const d = new Date(e.fecha + 'T00:00:00')
                     const esGestacion = e.tipo === 'parto' || e.tipo === 'secado'
-                    const nombre = esGestacion ? (e.animal_nombre || e.crotal) : (e.nombre || e.crotal)
+                    const nombre = e.tipo === 'actividad' ? e.nombre : esGestacion ? (e.animal_nombre || e.crotal) : (e.nombre || e.crotal)
                     return (
                       <div key={i} className="cal-mes-evento-row" onClick={() => onSelect(e)}>
                         <span className="cal-mes-evento-dia">{d.getDate()}</span>
@@ -229,7 +309,7 @@ function VistaAnual({ eventos, año, onNavigate, onSelect }) {
   )
 }
 
-function VistaMensual({ eventos, fecha, onNavigate, onSelect }) {
+function VistaMensual({ eventos, fecha, onNavigate, onSelect, onDayClick }) {
   const año = fecha.getFullYear()
   const mes = fecha.getMonth()
   const diasEnMes = new Date(año, mes + 1, 0).getDate()
@@ -270,7 +350,11 @@ function VistaMensual({ eventos, fecha, onNavigate, onSelect }) {
             const fechaDia = `${año}-${String(mes + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`
             const evts = porDia[dia] || []
             return (
-              <div key={dia} className={`cal-dia ${fechaDia === hoy ? 'cal-dia--hoy' : ''} ${evts.length > 0 ? 'cal-dia--tiene-eventos' : ''}`}>
+              <div
+                key={dia}
+                className={`cal-dia ${fechaDia === hoy ? 'cal-dia--hoy' : ''} ${evts.length > 0 ? 'cal-dia--tiene-eventos' : ''}`}
+                onClick={() => onDayClick(fechaDia)}
+              >
                 <div className="cal-dia-numero">{dia}</div>
                 <div className="cal-dia-eventos">
                   {evts.map((e, i) => <EventoItem key={i} evento={e} onSelect={onSelect} />)}
@@ -284,7 +368,7 @@ function VistaMensual({ eventos, fecha, onNavigate, onSelect }) {
   )
 }
 
-function VistaSemanal({ eventos, fecha, onNavigate, onSelect }) {
+function VistaSemanal({ eventos, fecha, onNavigate, onSelect, onDayClick }) {
   const lunes = startOfWeek(fecha)
   const dias = Array.from({ length: 7 }, (_, i) => addDays(lunes, i))
   const hoy = isoFecha(new Date())
@@ -317,7 +401,7 @@ function VistaSemanal({ eventos, fecha, onNavigate, onSelect }) {
                 <span className={`cal-semana-num ${iso === hoy ? 'cal-semana-num--hoy' : ''}`}>{d.getDate()}</span>
                 <span className="cal-semana-mes">{MESES[d.getMonth()].substring(0, 3)}</span>
               </div>
-              <div className="cal-semana-dia-body">
+              <div className="cal-semana-dia-body" onClick={() => onDayClick(iso)}>
                 {evts.length === 0
                   ? <div className="cal-semana-vacio">—</div>
                   : evts.map((e, i) => <EventoItem key={i} evento={e} onSelect={onSelect} />)
@@ -338,15 +422,20 @@ export default function Calendar() {
   const [partos, setPartos] = useState([])
   const [estadosHasta, setEstadosHasta] = useState([])
   const [celos, setCelos] = useState([])
+  const [actividades, setActividades] = useState([])
   const [eventoSeleccionado, setEventoSeleccionado] = useState(null)
+  const [fechaNuevaActividad, setFechaNuevaActividad] = useState(null)
+
+  const cargarActividades = () => api.getAllActividades().then(setActividades)
 
   useEffect(() => {
     api.getAllGestacionesCalendario().then(setPartos)
     api.getAnimalesConEstadoHasta().then(setEstadosHasta)
     api.getAllCelosCalendario().then(setCelos)
+    cargarActividades()
   }, [])
 
-  const eventos = unificarEventos(partos, estadosHasta, celos)
+  const eventos = unificarEventos(partos, estadosHasta, celos, actividades)
   const secados = partos.filter(p => p.fecha_secado_estimada).length
 
   const handleNav = (delta) => {
@@ -359,16 +448,32 @@ export default function Calendar() {
     })
   }
 
+  const handleGuardarActividad = async (data) => {
+    await api.createActividad(data)
+    await cargarActividades()
+    setFechaNuevaActividad(null)
+  }
+
+  const handleEliminarActividad = async (id) => {
+    await api.deleteActividad(id)
+    await cargarActividades()
+    setEventoSeleccionado(null)
+  }
+
   return (
     <div>
       <div className="cal-page-header">
         <div>
           <h1 className="cal-titulo">Calendario</h1>
           <p className="cal-subtitulo">
-            {partos.length} parto{partos.length !== 1 ? 's' : ''} · {secados} secado{secados !== 1 ? 's' : ''} · {estadosHasta.length} fin{estadosHasta.length !== 1 ? 'es' : ''} de estado · {celos.length} celo{celos.length !== 1 ? 's' : ''}
+            {partos.length} parto{partos.length !== 1 ? 's' : ''} · {secados} secado{secados !== 1 ? 's' : ''} · {estadosHasta.length} fin{estadosHasta.length !== 1 ? 'es' : ''} de estado · {celos.length} celo{celos.length !== 1 ? 's' : ''} · {actividades.length} actividad{actividades.length !== 1 ? 'es' : ''}
           </p>
         </div>
         <div className="cal-controles">
+          <button className="btn btn-primary" onClick={() => setFechaNuevaActividad(isoFecha(new Date()))}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Nueva actividad
+          </button>
           <button className="btn btn-secondary" onClick={() => setFecha(new Date())}>Hoy</button>
           <div className="cal-vista-toggle">
             {[['semana', 'Semana'], ['mes', 'Mes'], ['año', 'Año']].map(([v, l]) => (
@@ -383,11 +488,12 @@ export default function Calendar() {
         <div className="cal-leyenda-item"><span className="cal-leyenda-dot cal-leyenda-dot--secado" />Secado estimado</div>
         <div className="cal-leyenda-item"><span className="cal-leyenda-dot cal-leyenda-dot--estado" />Fin de estado</div>
         <div className="cal-leyenda-item"><span className="cal-leyenda-dot cal-leyenda-dot--celo" />Próximo celo</div>
+        <div className="cal-leyenda-item"><span className="cal-leyenda-dot cal-leyenda-dot--actividad" />Actividad</div>
       </div>
 
       <div className="card" style={{ overflow: 'auto' }}>
-        {vista === 'semana' && <VistaSemanal eventos={eventos} fecha={fecha} onNavigate={handleNav} onSelect={setEventoSeleccionado} />}
-        {vista === 'mes' && <VistaMensual eventos={eventos} fecha={fecha} onNavigate={handleNav} onSelect={setEventoSeleccionado} />}
+        {vista === 'semana' && <VistaSemanal eventos={eventos} fecha={fecha} onNavigate={handleNav} onSelect={setEventoSeleccionado} onDayClick={setFechaNuevaActividad} />}
+        {vista === 'mes' && <VistaMensual eventos={eventos} fecha={fecha} onNavigate={handleNav} onSelect={setEventoSeleccionado} onDayClick={setFechaNuevaActividad} />}
         {vista === 'año' && <VistaAnual eventos={eventos} año={fecha.getFullYear()} onNavigate={handleNav} onSelect={setEventoSeleccionado} />}
       </div>
 
@@ -396,6 +502,15 @@ export default function Calendar() {
           evento={eventoSeleccionado}
           onClose={() => setEventoSeleccionado(null)}
           onIr={(id) => { setEventoSeleccionado(null); navigate(`/animales/${id}`) }}
+          onDelete={handleEliminarActividad}
+        />
+      )}
+
+      {fechaNuevaActividad && (
+        <ModalNuevaActividad
+          fecha={fechaNuevaActividad}
+          onClose={() => setFechaNuevaActividad(null)}
+          onSave={handleGuardarActividad}
         />
       )}
     </div>

@@ -105,6 +105,18 @@ CREATE TABLE IF NOT EXISTS eventos_completados (
   UNIQUE(user_id, evento_key)
 );
 
+-- Actividades (eventos manuales del Calendario, ej. "Desparasitar" en una vaca concreta)
+CREATE TABLE IF NOT EXISTS actividades (
+  id         BIGSERIAL PRIMARY KEY,
+  user_id    UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  fecha      TEXT NOT NULL,
+  nombre     TEXT NOT NULL,
+  vaca       TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_actividades_fecha ON actividades(fecha);
+
 -- ============================================================
 -- Row Level Security (cada usuario solo ve sus propios datos)
 -- ============================================================
@@ -115,6 +127,7 @@ ALTER TABLE historial_medico ENABLE ROW LEVEL SECURITY;
 ALTER TABLE gestaciones    ENABLE ROW LEVEL SECURITY;
 ALTER TABLE celos          ENABLE ROW LEVEL SECURITY;
 ALTER TABLE eventos_completados ENABLE ROW LEVEL SECURITY;
+ALTER TABLE actividades       ENABLE ROW LEVEL SECURITY;
 
 -- Granjas
 CREATE POLICY "granjas_select" ON granjas FOR SELECT USING (auth.uid() = user_id);
@@ -150,3 +163,9 @@ CREATE POLICY "celos_delete" ON celos FOR DELETE USING (auth.uid() = user_id);
 CREATE POLICY "eventos_completados_select" ON eventos_completados FOR SELECT USING (auth.uid() = user_id);
 CREATE POLICY "eventos_completados_insert" ON eventos_completados FOR INSERT WITH CHECK (auth.uid() = user_id);
 CREATE POLICY "eventos_completados_delete" ON eventos_completados FOR DELETE USING (auth.uid() = user_id);
+
+-- Actividades
+CREATE POLICY "actividades_select" ON actividades FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "actividades_insert" ON actividades FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "actividades_update" ON actividades FOR UPDATE USING (auth.uid() = user_id);
+CREATE POLICY "actividades_delete" ON actividades FOR DELETE USING (auth.uid() = user_id);
