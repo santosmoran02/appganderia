@@ -9,6 +9,7 @@ import AnimalDetail from './components/AnimalDetail'
 import AnimalForm from './components/AnimalForm'
 import GranjaAnimalList from './components/GranjaAnimalList'
 import Calendar from './components/Calendar'
+import Recuentos from './components/Recuentos'
 
 function MainApp() {
   const navigate = useNavigate()
@@ -64,6 +65,10 @@ function MainApp() {
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
             Calendario
           </NavLink>
+          <NavLink to="/recuentos" className={({ isActive }) => isActive ? 'nav-item active' : 'nav-item'}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg>
+            Recuentos
+          </NavLink>
           <div className="sidebar-section-header">
             <span className="sidebar-section-label">Granjas</span>
             <button className="sidebar-section-add" title="Nueva granja" onClick={() => { setNombreGranja(''); setErrorGranja(''); setShowNuevaGranja(true) }}>
@@ -100,6 +105,7 @@ function MainApp() {
           <Route path="/animales/:id/editar" element={<AnimalForm onGranjaChange={cargarGranjas} />} />
           <Route path="/granjas/:granjaId" element={<GranjaAnimalList onGranjaChange={cargarGranjas} />} />
           <Route path="/calendario" element={<Calendar />} />
+          <Route path="/recuentos" element={<Recuentos />} />
         </Routes>
       </main>
 
