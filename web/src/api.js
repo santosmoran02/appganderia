@@ -95,7 +95,7 @@ export const api = {
 
   // ---- Animales ----
   getAnimales: async ({ busqueda = '', estado = '', raza = '', granja_id = null } = {}) => {
-    let q = supabase.from('animales').select(ANIMAL_SELECT).order('crotal', { ascending: true })
+    let q = supabase.from('animales').select(ANIMAL_SELECT).order('nombre', { ascending: true })
 
     if (busqueda) q = q.or(`crotal.ilike.%${busqueda}%,nombre.ilike.%${busqueda}%`)
     if (estado) q = q.eq('estado', estado)
