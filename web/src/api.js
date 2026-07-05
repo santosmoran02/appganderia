@@ -360,6 +360,23 @@ export const api = {
     return data || []
   },
 
+  // ---- Eventos completados (checklist "Esta semana" en Resumen) ----
+  getEventosCompletados: async () => {
+    const { data } = await supabase.from('eventos_completados').select('evento_key')
+    return new Set((data || []).map(r => r.evento_key))
+  },
+
+  marcarEventoCompletado: async (eventoKey) => {
+    const userId = await getUserId()
+    await supabase
+      .from('eventos_completados')
+      .upsert({ user_id: userId, evento_key: eventoKey }, { onConflict: 'user_id,evento_key' })
+  },
+
+  desmarcarEventoCompletado: async (eventoKey) => {
+    await supabase.from('eventos_completados').delete().eq('evento_key', eventoKey)
+  },
+
   // ---- Granjas ----
   getGranjas: async () => {
     const userId = await getUserId()
