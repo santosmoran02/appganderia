@@ -774,6 +774,17 @@ textarea { resize: vertical; min-height: 80px; }
 .empty-state-icon { font-size: 48px; margin-bottom: 12px; }
 .empty-state-text { font-size: 14px; }
 
+.recuento-animal-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+}
+.recuento-animal-row:hover { background: var(--gray-50); }
+
 /* ===== Loading ===== */
 .loading { text-align: center; padding: 48px; color: var(--gray-400); font-size: 14px; }
 
