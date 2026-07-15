@@ -74,7 +74,7 @@ export const api = {
       { count: machos },
       { data: razaData },
     ] = await Promise.all([
-      supabase.from('animales').select('*', { count: 'exact', head: true }),
+      supabase.from('animales').select('*', { count: 'exact', head: true }).not('estado', 'in', '(vendido,fallecido)'),
       supabase.from('animales').select('*', { count: 'exact', head: true }).in('estado', ESTADOS_ACTIVOS),
       supabase.from('animales').select('*', { count: 'exact', head: true }).eq('estado', 'vendido'),
       supabase.from('animales').select('*', { count: 'exact', head: true }).eq('estado', 'fallecido'),

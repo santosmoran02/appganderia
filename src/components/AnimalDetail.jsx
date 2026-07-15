@@ -8,6 +8,7 @@ import CeloForm from './CeloForm'
 const TIPO_LABEL = {
   vacuna: 'Vacuna', tratamiento: 'Tratamiento', revision: 'Revisión',
   desparasitacion: 'Desparasitación', analisis: 'Análisis', cirugia: 'Cirugía',
+  patas: 'Patas',
 }
 
 const ESTADO_LABEL = {
@@ -295,9 +296,9 @@ export default function AnimalDetail() {
 
   return (
     <div>
-      <Link to="/animales" className="back-link">
+      <Link to={location.state?.from || '/animales'} className="back-link">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="15 18 9 12 15 6"/></svg>
-        Volver a la lista
+        {location.state?.from ? 'Volver a la granja' : 'Volver a la lista'}
       </Link>
 
       <div className="animal-header">

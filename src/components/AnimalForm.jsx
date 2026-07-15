@@ -2,6 +2,16 @@ import { api } from '../api'
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate, useLocation, Link } from 'react-router-dom'
 
+const ESTADO_OPCIONES = [
+  { value: 'en_produccion', label: 'En producción' },
+  { value: 'seca', label: 'Seca' },
+  { value: 'parida', label: 'Parida' },
+  { value: 'ordenar_aparte', label: 'Ordeñar aparte' },
+  { value: 'otro', label: 'Otro' },
+  { value: 'vendido', label: 'Vendido' },
+  { value: 'fallecido', label: 'Fallecido' },
+]
+
 const EMPTY = {
   crotal: '', nombre: '', raza: '', fecha_nacimiento: '',
   sexo: '', peso: '',
@@ -110,7 +120,7 @@ export default function AnimalForm({ onGranjaChange }) {
         resolverProgenitor(form.padre_crotal, form.padre_nombre),
       ])
 
-      const granjaId = form.granja_id
+      const granjaId = form.estado === 'fallecido' ? null : form.granja_id
       const payload = {
         crotal: form.crotal.trim(),
         nombre: form.nombre.trim() || null,
@@ -207,7 +217,18 @@ export default function AnimalForm({ onGranjaChange }) {
                 <label>Partos</label>
                 <input type="number" min="0" step="1" value={form.partos} onChange={e => set('partos', e.target.value)} placeholder="Nº de partos" />
               </div>
+              <div className="form-group">
+                <label>Estado</label>
+                <select value={form.estado} onChange={e => set('estado', e.target.value)}>
+                  {ESTADO_OPCIONES.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                </select>
+              </div>
             </div>
+            {form.estado === 'fallecido' && (
+              <div style={{ fontSize: 12, color: 'var(--gray-500)', marginTop: -6, marginBottom: 14 }}>
+                Al guardar como "Fallecido" no se asignará a ninguna granja.
+              </div>
+            )}
             <div className="form-row">
               <div className="form-group">
                 <label>Fecha de nacimiento</label>

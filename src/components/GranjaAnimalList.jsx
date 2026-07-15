@@ -20,6 +20,7 @@ const TIPOS_MEDICO = [
   { value: 'desparasitacion', label: 'Desparasitación' },
   { value: 'analisis', label: 'Análisis' },
   { value: 'cirugia', label: 'Cirugía' },
+  { value: 'patas', label: 'Patas' },
 ]
 
 function calcularEdad(fechaNac) {
@@ -337,7 +338,7 @@ export default function GranjaAnimalList({ onGranjaChange }) {
             </thead>
             <tbody>
               {animales.map(a => (
-                <tr key={a.id} onClick={() => navigate(`/animales/${a.id}`)}>
+                <tr key={a.id} onClick={() => navigate(`/animales/${a.id}`, { state: { from: `/granjas/${granjaId}` } })}>
                   <td onClick={e => e.stopPropagation()}>
                     <input
                       type="checkbox"

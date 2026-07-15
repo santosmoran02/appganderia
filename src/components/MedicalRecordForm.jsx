@@ -8,6 +8,7 @@ const TIPOS = [
   { value: 'desparasitacion', label: 'Desparasitación' },
   { value: 'analisis', label: 'Análisis' },
   { value: 'cirugia', label: 'Cirugía' },
+  { value: 'patas', label: 'Patas' },
 ]
 
 export default function MedicalRecordForm({ animalId, registro, onClose, onSaved }) {
