@@ -28,12 +28,13 @@ export default function AnimalForm({ onGranjaChange }) {
     const base = { ...EMPTY, granja_id: granjaIdInicial }
     if (!isEdit && progenitorInicial) {
       const esMadre = progenitorInicial.sexo === 'hembra'
+      const esPadre = progenitorInicial.sexo === 'macho'
       return {
         ...base,
         madre_crotal: esMadre ? progenitorInicial.crotal : '',
         madre_nombre: esMadre ? (progenitorInicial.nombre || '') : '',
-        padre_crotal: !esMadre ? progenitorInicial.crotal : '',
-        padre_nombre: !esMadre ? (progenitorInicial.nombre || '') : '',
+        padre_crotal: esPadre ? progenitorInicial.crotal : '',
+        padre_nombre: esPadre ? (progenitorInicial.nombre || '') : '',
       }
     }
     return base
