@@ -20,6 +20,7 @@ const TIPOS_MEDICO = [
   { value: 'desparasitacion', label: 'Desparasitación' },
   { value: 'analisis', label: 'Análisis' },
   { value: 'cirugia', label: 'Cirugía' },
+  { value: 'patas', label: 'Patas' },
 ]
 
 function calcularEdad(fechaNac) {

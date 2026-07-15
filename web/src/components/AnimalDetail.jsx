@@ -8,6 +8,7 @@ import CeloForm from './CeloForm'
 const TIPO_LABEL = {
   vacuna: 'Vacuna', tratamiento: 'Tratamiento', revision: 'Revisión',
   desparasitacion: 'Desparasitación', analisis: 'Análisis', cirugia: 'Cirugía',
+  patas: 'Patas',
 }
 
 const ESTADO_LABEL = {

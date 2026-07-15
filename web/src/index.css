@@ -418,6 +418,7 @@ select.filter-select:focus { border-color: var(--green-600); }
 .badge-desparasitacion { background: var(--yellow-100); color: #92400e; }
 .badge-analisis { background: #ede9fe; color: #5b21b6; }
 .badge-cirugia { background: var(--red-100); color: #991b1b; }
+.badge-patas { background: #ffedd5; color: #9a3412; }
 
 /* ===== Animal Detail ===== */
 .animal-header {
