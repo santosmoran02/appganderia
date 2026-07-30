@@ -149,6 +149,14 @@ export const api = {
     return flattenAnimal(result)
   },
 
+  updateAnimalesGranja: async (ids, granjaId) => {
+    const { error } = await supabase
+      .from('animales')
+      .update({ granja_id: granjaId, updated_at: new Date().toISOString() })
+      .in('id', ids)
+    if (error) throw error
+  },
+
   deleteAnimal: async (id) => {
     await supabase.from('animales').delete().eq('id', id)
   },
@@ -216,6 +224,18 @@ export const api = {
     const { data: result, error } = await supabase.from('historial_medico').insert(payload).select().single()
     if (error) throw error
     return result
+  },
+
+  createRegistroMedicoBulk: async (payload, animalIds) => {
+    const userId = await getUserId()
+    const rows = animalIds.map(animalId => ({
+      ...payload,
+      animal_id: animalId,
+      user_id: userId,
+      fecha: payload.fecha_inicio || payload.fecha_fin || '',
+    }))
+    const { error } = await supabase.from('historial_medico').insert(rows)
+    if (error) throw error
   },
 
   updateRegistroMedico: async (id, data) => {

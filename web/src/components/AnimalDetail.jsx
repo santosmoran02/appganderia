@@ -293,6 +293,7 @@ export default function AnimalDetail() {
 
   const avatarEmoji = animal.sexo === 'hembra' ? '🐄' : animal.sexo === 'macho' ? '🐂' : '🐄'
   const esHembra = animal.sexo === 'hembra'
+  const tiempoEstado = estadoDesde ? calcularTiempoEstado(estadoDesde) : null
 
   return (
     <div>
@@ -435,10 +436,10 @@ export default function AnimalDetail() {
                   >Borrar fecha</button>
                 )}
               </div>
-              {estadoDesde && calcularTiempoEstado(estadoDesde) && (
+              {tiempoEstado && (
                 <div className="estado-tiempo-badge">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 14, height: 14, flexShrink: 0 }}><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                  {calcularTiempoEstado(estadoDesde)} en este estado
+                  {tiempoEstado} en este estado
                 </div>
               )}
             </div>

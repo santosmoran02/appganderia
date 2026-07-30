@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
 import JSZip from 'jszip'
+import { ModalRegistroMedicoBulk, ModalMoverGranja } from './BulkAnimalModals'
 
 const ESTADOS = ['', 'en_produccion', 'seca', 'parida', 'ordenar_aparte', 'otro']
 const ESTADO_LABEL = {
@@ -472,28 +473,70 @@ async function exportarBackupPDF() {
 export default function AnimalList({ onGranjaChange }) {
   const [animales, setAnimales] = useState([])
   const [razas, setRazas] = useState([])
+  const [granjas, setGranjas] = useState([])
   const [busqueda, setBusqueda] = useState('')
+  const [busquedaQuery, setBusquedaQuery] = useState('')
   const [estado, setEstado] = useState('')
   const [raza, setRaza] = useState('')
   const [loading, setLoading] = useState(true)
   const [restaurando, setRestaurando] = useState(false)
   const [resultadoRestauracion, setResultadoRestauracion] = useState(null)
+  const [seleccionados, setSeleccionados] = useState(new Set())
+  const [showRegistroMedicoBulk, setShowRegistroMedicoBulk] = useState(false)
+  const [showMoverGranja, setShowMoverGranja] = useState(false)
   const fileInputRef = useRef(null)
   const navigate = useNavigate()
 
+  useEffect(() => {
+    const t = setTimeout(() => setBusquedaQuery(busqueda), 300)
+    return () => clearTimeout(t)
+  }, [busqueda])
+
   const cargar = useCallback(() => {
     setLoading(true)
-    api.getAnimales({ busqueda, estado, raza }).then(data => {
+    api.getAnimales({ busqueda: busquedaQuery, estado, raza }).then(data => {
       setAnimales(data)
       setLoading(false)
     })
-  }, [busqueda, estado, raza])
+  }, [busquedaQuery, estado, raza])
 
   useEffect(() => { cargar() }, [cargar])
 
   useEffect(() => {
     api.getRazas().then(setRazas)
+    api.getGranjas().then(setGranjas)
   }, [])
+
+  const toggleSeleccion = (id) => {
+    setSeleccionados(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  const toggleSeleccionarTodos = () => {
+    setSeleccionados(prev => {
+      const todosSeleccionados = animales.length > 0 && animales.every(a => prev.has(a.id))
+      if (todosSeleccionados) return new Set()
+      return new Set(animales.map(a => a.id))
+    })
+  }
+
+  const handleGuardarRegistroMedicoBulk = async (payload) => {
+    await api.createRegistroMedicoBulk(payload, [...seleccionados])
+    setSeleccionados(new Set())
+    setShowRegistroMedicoBulk(false)
+  }
+
+  const handleMoverGranjaBulk = async (destinoId) => {
+    await api.updateAnimalesGranja([...seleccionados], destinoId)
+    setSeleccionados(new Set())
+    setShowMoverGranja(false)
+    cargar()
+    onGranjaChange?.()
+  }
 
   const handleArchivoRestauracion = async (e) => {
     const file = e.target.files?.[0]
@@ -522,6 +565,8 @@ export default function AnimalList({ onGranjaChange }) {
       setRestaurando(false)
     }
   }
+
+  const todosSeleccionados = animales.length > 0 && animales.every(a => seleccionados.has(a.id))
 
   return (
     <div>
@@ -614,6 +659,15 @@ export default function AnimalList({ onGranjaChange }) {
         </select>
       </div>
 
+      {seleccionados.size > 0 && (
+        <div className="card" style={{ padding: 12, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', background: 'var(--green-50)' }}>
+          <span style={{ fontWeight: 600, fontSize: 13 }}>{seleccionados.size} seleccionado{seleccionados.size !== 1 ? 's' : ''}</span>
+          <button className="btn btn-secondary" onClick={() => setShowRegistroMedicoBulk(true)}>Añadir registro médico</button>
+          <button className="btn btn-secondary" onClick={() => setShowMoverGranja(true)}>Mover a otra granja</button>
+          <button className="btn btn-secondary" style={{ marginLeft: 'auto' }} onClick={() => setSeleccionados(new Set())}>Cancelar selección</button>
+        </div>
+      )}
+
       {loading ? (
         <div className="loading">Cargando animales...</div>
       ) : animales.length === 0 ? (
@@ -626,6 +680,9 @@ export default function AnimalList({ onGranjaChange }) {
           <table className="animals-table">
             <thead>
               <tr>
+                <th style={{ width: 32 }}>
+                  <input type="checkbox" checked={todosSeleccionados} onChange={toggleSeleccionarTodos} style={{ cursor: 'pointer' }} />
+                </th>
                 <th>Crotal</th>
                 <th>Nombre</th>
                 <th>Estado</th>
@@ -638,6 +695,14 @@ export default function AnimalList({ onGranjaChange }) {
             <tbody>
               {animales.map(a => (
                 <tr key={a.id} onClick={() => navigate(`/animales/${a.id}`)}>
+                  <td onClick={e => e.stopPropagation()}>
+                    <input
+                      type="checkbox"
+                      checked={seleccionados.has(a.id)}
+                      onChange={() => toggleSeleccion(a.id)}
+                      style={{ cursor: 'pointer' }}
+                    />
+                  </td>
                   <td><span className="crotal-cell">{a.crotal}</span></td>
                   <td>{a.nombre || <span style={{ color: 'var(--gray-400)' }}>—</span>}</td>
                   <td><span className={`badge badge-${a.estado}`}>{ESTADO_LABEL[a.estado]}</span></td>
@@ -655,6 +720,23 @@ export default function AnimalList({ onGranjaChange }) {
             </tbody>
           </table>
         </div>
+      )}
+
+      {showRegistroMedicoBulk && (
+        <ModalRegistroMedicoBulk
+          cantidad={seleccionados.size}
+          onClose={() => setShowRegistroMedicoBulk(false)}
+          onSave={handleGuardarRegistroMedicoBulk}
+        />
+      )}
+
+      {showMoverGranja && (
+        <ModalMoverGranja
+          granjas={granjas}
+          cantidad={seleccionados.size}
+          onClose={() => setShowMoverGranja(false)}
+          onConfirm={handleMoverGranjaBulk}
+        />
       )}
     </div>
   )

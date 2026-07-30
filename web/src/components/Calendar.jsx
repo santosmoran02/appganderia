@@ -41,11 +41,11 @@ function formatFechaCal(iso) {
 // Convierte todas las listas en una lista unificada con campo `fecha` y `tipo`
 function unificarEventos(partos, estadosHasta, celos, actividades) {
   return [
-    ...partos.map(e => ({ ...e, tipo: 'parto', fecha: e.fecha_parto_estimada })),
-    ...partos.filter(e => e.fecha_secado_estimada).map(e => ({ ...e, tipo: 'secado', fecha: e.fecha_secado_estimada })),
-    ...estadosHasta.map(e => ({ ...e, tipo: 'estado', fecha: e.estado_hasta })),
-    ...celos.map(e => ({ ...e, tipo: 'celo', fecha: e.fecha_proximo_celo })),
-    ...actividades.map(e => ({ ...e, tipo: 'actividad', fecha: e.fecha })),
+    ...partos.map(e => ({ ...e, tipo: 'parto', fecha: e.fecha_parto_estimada, key: `parto-${e.id}` })),
+    ...partos.filter(e => e.fecha_secado_estimada).map(e => ({ ...e, tipo: 'secado', fecha: e.fecha_secado_estimada, key: `secado-${e.id}` })),
+    ...estadosHasta.map(e => ({ ...e, tipo: 'estado', fecha: e.estado_hasta, key: `estado-${e.id}` })),
+    ...celos.map(e => ({ ...e, tipo: 'celo', fecha: e.fecha_proximo_celo, key: `celo-${e.id}` })),
+    ...actividades.map(e => ({ ...e, tipo: 'actividad', fecha: e.fecha, key: `actividad-${e.id}` })),
   ]
 }
 
@@ -287,12 +287,12 @@ function VistaAnual({ eventos, año, onNavigate, onSelect }) {
                 <div className="cal-mes-vacio">Sin eventos</div>
               ) : (
                 <div className="cal-mes-eventos">
-                  {evts.map((e, i) => {
+                  {evts.map((e) => {
                     const d = new Date(e.fecha + 'T00:00:00')
                     const esGestacion = e.tipo === 'parto' || e.tipo === 'secado'
                     const nombre = e.tipo === 'actividad' ? e.nombre : esGestacion ? (e.animal_nombre || e.crotal) : (e.nombre || e.crotal)
                     return (
-                      <div key={i} className="cal-mes-evento-row" onClick={() => onSelect(e)}>
+                      <div key={e.key} className="cal-mes-evento-row" onClick={() => onSelect(e)}>
                         <span className="cal-mes-evento-dia">{d.getDate()}</span>
                         <span className="cal-mes-evento-icon">{ICONO_EVENTO[e.tipo]}</span>
                         <span className="cal-mes-evento-animal">{nombre}</span>
@@ -357,7 +357,7 @@ function VistaMensual({ eventos, fecha, onNavigate, onSelect, onDayClick }) {
               >
                 <div className="cal-dia-numero">{dia}</div>
                 <div className="cal-dia-eventos">
-                  {evts.map((e, i) => <EventoItem key={i} evento={e} onSelect={onSelect} />)}
+                  {evts.map((e) => <EventoItem key={e.key} evento={e} onSelect={onSelect} />)}
                 </div>
               </div>
             )
@@ -404,7 +404,7 @@ function VistaSemanal({ eventos, fecha, onNavigate, onSelect, onDayClick }) {
               <div className="cal-semana-dia-body" onClick={() => onDayClick(iso)}>
                 {evts.length === 0
                   ? <div className="cal-semana-vacio">—</div>
-                  : evts.map((e, i) => <EventoItem key={i} evento={e} onSelect={onSelect} />)
+                  : evts.map((e) => <EventoItem key={e.key} evento={e} onSelect={onSelect} />)
                 }
               </div>
             </div>

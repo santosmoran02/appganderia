@@ -1,6 +1,7 @@
 import { api } from '../api'
 import { useEffect, useState, useCallback } from 'react'
-import { useNavigate, useParams, Link } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
+import { ModalRegistroMedicoBulk, ModalMoverGranja } from './BulkAnimalModals'
 
 const ESTADOS = ['', 'en_produccion', 'seca', 'parida', 'ordenar_aparte', 'otro']
 const ESTADO_LABEL = {
@@ -13,16 +14,6 @@ const ESTADO_LABEL = {
   fallecido: 'Fallecido',
 }
 
-const TIPOS_MEDICO = [
-  { value: 'vacuna', label: 'Vacuna' },
-  { value: 'tratamiento', label: 'Tratamiento' },
-  { value: 'revision', label: 'Revisión' },
-  { value: 'desparasitacion', label: 'Desparasitación' },
-  { value: 'analisis', label: 'Análisis' },
-  { value: 'cirugia', label: 'Cirugía' },
-  { value: 'patas', label: 'Patas' },
-]
-
 function calcularEdad(fechaNac) {
   if (!fechaNac) return '-'
   const hoy = new Date()
@@ -31,110 +22,6 @@ function calcularEdad(fechaNac) {
   if (meses < 1) return 'Recién nacido'
   if (meses < 24) return `${meses} m`
   return `${Math.floor(meses / 12)} años`
-}
-
-function ModalRegistroMedicoBulk({ cantidad, onClose, onSave }) {
-  const [form, setForm] = useState({ tipo: 'revision', fecha_inicio: '', fecha_fin: '', descripcion: '', veterinario: '' })
-  const [saving, setSaving] = useState(false)
-
-  const set = (field, value) => setForm(f => ({ ...f, [field]: value }))
-
-  const handleSubmit = async (ev) => {
-    ev.preventDefault()
-    setSaving(true)
-    try {
-      await onSave({
-        tipo: form.tipo,
-        fecha_inicio: form.fecha_inicio || null,
-        fecha_fin: form.fecha_fin || null,
-        descripcion: form.descripcion.trim() || null,
-        veterinario: form.veterinario.trim() || null,
-      })
-    } catch {
-      setSaving(false)
-    }
-  }
-
-  return (
-    <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
-      <div className="modal">
-        <div className="modal-title">Registro médico para {cantidad} animal{cantidad !== 1 ? 'es' : ''}</div>
-        <form onSubmit={handleSubmit}>
-          <div className="form-group" style={{ marginBottom: 14 }}>
-            <label>Tipo</label>
-            <select value={form.tipo} onChange={e => set('tipo', e.target.value)}>
-              {TIPOS_MEDICO.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
-            </select>
-          </div>
-
-          <div className="form-row" style={{ marginBottom: 14 }}>
-            <div className="form-group">
-              <label>Fecha de inicio</label>
-              <input type="date" value={form.fecha_inicio} onChange={e => set('fecha_inicio', e.target.value)} />
-            </div>
-            <div className="form-group">
-              <label>Fecha de fin</label>
-              <input type="date" value={form.fecha_fin} onChange={e => set('fecha_fin', e.target.value)} />
-            </div>
-          </div>
-
-          <div className="form-group" style={{ marginBottom: 14 }}>
-            <label>Descripción</label>
-            <textarea value={form.descripcion} onChange={e => set('descripcion', e.target.value)} placeholder="Detalles del procedimiento, medicamento, dosis..." rows={3} />
-          </div>
-
-          <div className="form-group" style={{ marginBottom: 6 }}>
-            <label>Veterinario</label>
-            <input type="text" value={form.veterinario} onChange={e => set('veterinario', e.target.value)} placeholder="Nombre del veterinario (opcional)" />
-          </div>
-
-          <div className="modal-footer">
-            <button type="button" className="btn btn-secondary" onClick={onClose} disabled={saving}>Cancelar</button>
-            <button type="submit" className="btn btn-primary" disabled={saving}>
-              {saving ? 'Guardando...' : `Aplicar a ${cantidad} animal${cantidad !== 1 ? 'es' : ''}`}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  )
-}
-
-function ModalMoverGranja({ granjas, granjaActualId, cantidad, onClose, onConfirm }) {
-  const [destino, setDestino] = useState('')
-  const [saving, setSaving] = useState(false)
-  const opciones = granjas.filter(g => g.id !== granjaActualId)
-
-  const handleConfirmar = async () => {
-    if (!destino) return
-    setSaving(true)
-    try {
-      await onConfirm(Number(destino))
-    } catch {
-      setSaving(false)
-    }
-  }
-
-  return (
-    <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
-      <div className="modal">
-        <div className="modal-title">Mover {cantidad} animal{cantidad !== 1 ? 'es' : ''} a otra granja</div>
-        <div className="form-group">
-          <label>Granja de destino</label>
-          <select value={destino} onChange={e => setDestino(e.target.value)}>
-            <option value="">Selecciona una granja...</option>
-            {opciones.map(g => <option key={g.id} value={g.id}>{g.nombre}</option>)}
-          </select>
-        </div>
-        <div className="modal-footer">
-          <button className="btn btn-secondary" onClick={onClose} disabled={saving}>Cancelar</button>
-          <button className="btn btn-primary" onClick={handleConfirmar} disabled={!destino || saving}>
-            {saving ? 'Moviendo...' : 'Mover'}
-          </button>
-        </div>
-      </div>
-    </div>
-  )
 }
 
 export default function GranjaAnimalList({ onGranjaChange }) {
@@ -146,6 +33,7 @@ export default function GranjaAnimalList({ onGranjaChange }) {
   const [animales, setAnimales] = useState([])
   const [razas, setRazas] = useState([])
   const [busqueda, setBusqueda] = useState('')
+  const [busquedaQuery, setBusquedaQuery] = useState('')
   const [estado, setEstado] = useState('')
   const [raza, setRaza] = useState('')
   const [loading, setLoading] = useState(true)
@@ -167,13 +55,18 @@ export default function GranjaAnimalList({ onGranjaChange }) {
     setSeleccionados(new Set())
   }, [granjaId])
 
+  useEffect(() => {
+    const t = setTimeout(() => setBusquedaQuery(busqueda), 300)
+    return () => clearTimeout(t)
+  }, [busqueda])
+
   const cargar = useCallback(() => {
     setLoading(true)
-    api.getAnimales({ busqueda, estado, raza, granja_id: Number(granjaId) }).then(data => {
+    api.getAnimales({ busqueda: busquedaQuery, estado, raza, granja_id: Number(granjaId) }).then(data => {
       setAnimales(data)
       setLoading(false)
     })
-  }, [busqueda, estado, raza, granjaId])
+  }, [busquedaQuery, estado, raza, granjaId])
 
   useEffect(() => { cargar() }, [cargar])
 
@@ -230,13 +123,13 @@ export default function GranjaAnimalList({ onGranjaChange }) {
   }
 
   const handleGuardarRegistroMedicoBulk = async (payload) => {
-    await Promise.all([...seleccionados].map(id => api.createRegistroMedico({ ...payload, animal_id: id })))
+    await api.createRegistroMedicoBulk(payload, [...seleccionados])
     setSeleccionados(new Set())
     setShowRegistroMedicoBulk(false)
   }
 
   const handleMoverGranjaBulk = async (destinoId) => {
-    await Promise.all([...seleccionados].map(id => api.updateAnimal(id, { granja_id: destinoId })))
+    await api.updateAnimalesGranja([...seleccionados], destinoId)
     setSeleccionados(new Set())
     setShowMoverGranja(false)
     cargar()

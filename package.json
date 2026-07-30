@@ -9,16 +9,12 @@
     "dev": "concurrently \"vite\" \"wait-on http://localhost:5173 && electron . --no-sandbox\"",
     "build": "vite build",
     "electron:dev": "electron .",
-    "rebuild": "PYTHONPATH=/tmp/python_shims electron-rebuild -f -w better-sqlite3",
     "dist": "vite build && electron-builder",
     "dist:win": "vite build && electron-builder --win --x64",
     "dist:win:portable": "vite build && electron-builder --win portable --x64"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.108.1",
-    "better-sqlite3": "^11.10.0",
-    "date-fns": "^3.6.0",
-    "electron-updater": "^6.8.3",
     "jspdf": "^4.2.1",
     "jspdf-autotable": "^5.0.8",
     "jszip": "^3.10.1",
@@ -52,9 +48,6 @@
       "node_modules/**/*",
       "public/**/*",
       "package.json"
-    ],
-    "asarUnpack": [
-      "node_modules/better-sqlite3/**/*"
     ],
     "artifactName": "${productName}-Setup.${ext}",
     "win": {
