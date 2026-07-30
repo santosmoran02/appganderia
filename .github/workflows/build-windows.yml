@@ -25,9 +25,6 @@ jobs:
       - name: Instalar dependencias
         run: npm ci
 
-      - name: Reconstruir módulos nativos para Electron
-        run: npx electron-rebuild -f -w better-sqlite3
-
       - name: Construir frontend (Vite)
         run: npm run build
         env:
